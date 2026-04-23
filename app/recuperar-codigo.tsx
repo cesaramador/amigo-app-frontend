@@ -28,18 +28,18 @@ export default function RecuperarCodigoScreen() {
     setLoading(false);
 
     if (!result.success) {
-      setError(result.message);
+      setError(result.message || "No se pudo completar la solicitud. Intente de nuevo.");
       return;
     }
 
-    setMessage(result.message);
+    setMessage(result.message || "Operación completada.");
   };
 
   return (
     <ScrollView style={authStyles.screen} contentContainerStyle={authStyles.content}>
-      <View style={authStyles.card}>
-        <Text style={authStyles.title}>Recuperar Código</Text>
-        <Text style={authStyles.subtitle}>
+      <View style={[authStyles.card, authStyles.cardNarrow]}>
+        <Text style={[authStyles.title, authStyles.textCenter]}>Recuperar Código</Text>
+        <Text style={[authStyles.subtitle, authStyles.textCenter]}>
           Captura tu número celular y correo para recibir un nuevo código por email.
         </Text>
 
@@ -84,9 +84,11 @@ export default function RecuperarCodigoScreen() {
           </Text>
         </Pressable>
 
-        <Link href="/" style={authStyles.linkText}>
-          Volver al login
-        </Link>
+        <View style={authStyles.linksRowCentered}>
+          <Link href="/" style={[authStyles.linkText, authStyles.textCenter]}>
+            Volver al login
+          </Link>
+        </View>
       </View>
     </ScrollView>
   );

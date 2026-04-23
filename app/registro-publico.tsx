@@ -116,6 +116,15 @@ const fallbackEstatusUsuarios: EstatusUsuarioOption[] = [
   { id_estatususuario: 1, estatus_usuario: "vigente" },
 ];
 
+function RequiredLabel({ children }: { children: string }) {
+  return (
+    <Text style={authStyles.label}>
+      {children}
+      <Text style={authStyles.requiredAsterisk}> *</Text>
+    </Text>
+  );
+}
+
 export default function RegistroPublicoScreen() {
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState("");
@@ -326,13 +335,13 @@ export default function RegistroPublicoScreen() {
       style={authStyles.screen}
       contentContainerStyle={authStyles.content}
     >
-      <View style={authStyles.card}>
-        <Text style={authStyles.title}>Registro Público</Text>
-        <Text style={authStyles.subtitle}>
+      <View style={[authStyles.card, authStyles.cardWide]}>
+        <Text style={[authStyles.title, authStyles.textCenter]}>Registro Público</Text>
+        <Text style={[authStyles.subtitle, authStyles.textCenter]}>
           Complete sus datos para crear su cuenta y recibir el código por email.
         </Text>
 
-        <Text style={authStyles.label}>Nombre *</Text>
+        <RequiredLabel>Nombre</RequiredLabel>
         <TextInput
           style={authStyles.input}
           value={form.nombre}
@@ -416,7 +425,7 @@ export default function RegistroPublicoScreen() {
           </>
         )}
 
-        <Text style={authStyles.label}>Número celular personal *</Text>
+        <RequiredLabel>Número celular personal</RequiredLabel>
         <TextInput
           style={authStyles.input}
           value={form.telefono_personal}
@@ -434,7 +443,7 @@ export default function RegistroPublicoScreen() {
           onChangeText={(v) => updateField("telefono_contacto", v)}
         />
 
-        <Text style={authStyles.label}>Correo electrónico *</Text>
+        <RequiredLabel>Correo electrónico</RequiredLabel>
         <TextInput
           style={authStyles.input}
           value={form.email}
@@ -443,7 +452,7 @@ export default function RegistroPublicoScreen() {
           onChangeText={(v) => updateField("email", v)}
         />
 
-        <Text style={authStyles.label}>Tipo de usuario *</Text>
+        <RequiredLabel>Tipo de usuario</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_tipousuario}
@@ -468,7 +477,7 @@ export default function RegistroPublicoScreen() {
           </Picker>
         </View>
 
-        <Text style={authStyles.label}>ID estado *</Text>
+        <RequiredLabel>ID estado</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_estado}
@@ -491,7 +500,7 @@ export default function RegistroPublicoScreen() {
           </Picker>
         </View>
 
-        <Text style={authStyles.label}>Municipio *</Text>
+        <RequiredLabel>Municipio</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_municipio}
@@ -516,14 +525,14 @@ export default function RegistroPublicoScreen() {
           </Picker>
         </View>
 
-        <Text style={authStyles.label}>Colonia *</Text>
+        <RequiredLabel>Colonia</RequiredLabel>
         <TextInput
           style={authStyles.input}
           value={form.colonia}
           onChangeText={(v) => updateField("colonia", v)}
         />
 
-        <Text style={authStyles.label}>Calle *</Text>
+        <RequiredLabel>Calle</RequiredLabel>
         <TextInput
           style={authStyles.input}
           value={form.calle}
@@ -544,7 +553,7 @@ export default function RegistroPublicoScreen() {
           onChangeText={(v) => updateField("numero_ext", v)}
         />
 
-        <Text style={authStyles.label}>Código postal *</Text>
+        <RequiredLabel>Código postal</RequiredLabel>
         <TextInput
           style={authStyles.input}
           value={form.codigo_postal}
@@ -567,7 +576,7 @@ export default function RegistroPublicoScreen() {
           onChangeText={(v) => updateField("rfc", v)}
         />
 
-        <Text style={authStyles.label}>Género *</Text>
+        <RequiredLabel>Género</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_genero}
@@ -590,7 +599,7 @@ export default function RegistroPublicoScreen() {
           </Picker>
         </View>
 
-        <Text style={authStyles.label}>Estatus de usuario *</Text>
+        <RequiredLabel>Estatus de usuario</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_estatus_usuario}
@@ -615,7 +624,7 @@ export default function RegistroPublicoScreen() {
           </Picker>
         </View>
 
-        <Text style={authStyles.label}>Estatus marital *</Text>
+        <RequiredLabel>Estatus marital</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_estatus_marital}
@@ -640,7 +649,7 @@ export default function RegistroPublicoScreen() {
           </Picker>
         </View>
 
-        <Text style={authStyles.label}>Categoría de vivienda *</Text>
+        <RequiredLabel>Categoría de vivienda</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_categoria_vivienda}
@@ -686,9 +695,11 @@ export default function RegistroPublicoScreen() {
           </Text>
         </Pressable>
 
-        <Link href="/" style={authStyles.linkText}>
-          Volver al login
-        </Link>
+        <View style={authStyles.linksRowCentered}>
+          <Link href="/" style={[authStyles.linkText, authStyles.textCenter]}>
+            Volver al login
+          </Link>
+        </View>
       </View>
     </ScrollView>
   );

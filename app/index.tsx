@@ -55,9 +55,9 @@ export default function Index() {
 
   return (
     <ScrollView style={authStyles.screen} contentContainerStyle={authStyles.content}>
-      <View style={authStyles.card}>
-        <Text style={authStyles.title}>Acceso al Sistema</Text>
-        <Text style={authStyles.subtitle}>
+      <View style={[authStyles.card, authStyles.cardNarrow]}>
+        <Text style={[authStyles.title, authStyles.textCenter]}>Acceso al Sistema</Text>
+        <Text style={[authStyles.subtitle, authStyles.textCenter]}>
           Ingrese su número celular y su código personal.
         </Text>
 
@@ -81,6 +81,7 @@ export default function Index() {
             value={codigo}
             onChangeText={onChangeCodigo}
             keyboardType="numeric"
+            secureTextEntry
             maxLength={6}
             placeholder="6 dígitos"
             accessibilityLabel="Código de acceso"
@@ -91,17 +92,21 @@ export default function Index() {
           <Text style={[authStyles.message, authStyles.messageError]}>{error}</Text>
         ) : null}
 
-        <Pressable style={authStyles.button} onPress={onSubmit} disabled={loading}>
+        <Pressable
+          style={[authStyles.button, authStyles.buttonSecondary]}
+          onPress={onSubmit}
+          disabled={loading}
+        >
           <Text style={authStyles.buttonText}>
             {loading ? "Accediendo..." : "Acceder al sistema"}
           </Text>
         </Pressable>
 
-        <View style={authStyles.linksRow}>
-          <Link href="/recuperar-codigo" style={authStyles.linkText}>
+        <View style={[authStyles.linksRow, authStyles.linksRowCentered]}>
+          <Link href="/recuperar-codigo" style={[authStyles.linkText, authStyles.textCenter]}>
             Recuperar código de acceso
           </Link>
-          <Link href="/registro-publico" style={authStyles.linkText}>
+          <Link href="/registro-publico" style={[authStyles.linkText, authStyles.textCenter]}>
             Registro público al sistema
           </Link>
         </View>

@@ -2,12 +2,24 @@ function resolveApiBaseUrl() {
   const raw = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
   const fallback = "https://amigo.dextrati.cloud/api/v1";
 
-  if (!raw) return fallback;
+  if (raw) {
+    const sanitized = raw.replace(/\/+$/, "");
+    if (sanitized.endsWith("/api/v1")) return sanitized;
+    if (sanitized.endsWith("/api")) return `${sanitized}/v1`;
+    return `${sanitized}/api/v1`;
+  }
 
-  const sanitized = raw.replace(/\/+$/, "");
-  if (sanitized.endsWith("/api/v1")) return sanitized;
-  if (sanitized.endsWith("/api")) return `${sanitized}/v1`;
-  return `${sanitized}/api/v1`;
+  // Web en localhost: usar API local si no hay EXPO_PUBLIC_API_BASE_URL (puerto por defecto del backend).
+  if (typeof window !== "undefined") {
+    const host = window.location?.hostname;
+    if (host === "localhost" || host === "127.0.0.1") {
+      const localPort =
+        process.env.EXPO_PUBLIC_API_LOCAL_PORT?.trim() || "5500";
+      return `http://${host}:${localPort}/api/v1`;
+    }
+  }
+
+  return fallback;
 }
 
 const API_BASE_URL = resolveApiBaseUrl();

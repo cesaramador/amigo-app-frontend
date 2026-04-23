@@ -1,15 +1,25 @@
 import { StyleSheet } from "react-native";
 
 export const colors = {
-  background: "#F5F0E8",
-  surface: "#FFFDF8",
-  primary: "#1F4E79",
-  secondary: "#C76B39",
-  text: "#1D1D1D",
-  muted: "#5A5A5A",
-  border: "#C9BCA9",
-  success: "#2E7D32",
-  error: "#B3261E",
+  // Paleta recomendada
+  blueTrust: "#2D6CB0",
+  greenCalm: "#6BAA7B",
+  yellowSoft: "#F2C86D",
+  lavenderSoft: "#A999D6",
+  lightGray: "#F2F4F7",
+  darkBlue: "#2B2F3A",
+
+  // Tokens de UI
+  background: "#F2F4F7",
+  surface: "#FFFFFF",
+  primary: "#2D6CB0",
+  secondary: "#A999D6",
+  accent: "#F2C86D",
+  text: "#2B2F3A",
+  muted: "#5E6676",
+  border: "#D9DEE7",
+  success: "#6BAA7B",
+  error: "#C4554D",
 };
 
 export const authStyles = StyleSheet.create({
@@ -32,7 +42,7 @@ export const authStyles = StyleSheet.create({
     marginBottom: 6,
   },
   topBarText: {
-    color: colors.primary,
+    color: colors.darkBlue,
     fontSize: 16,
     fontWeight: "700",
   },
@@ -44,14 +54,27 @@ export const authStyles = StyleSheet.create({
     padding: 18,
     gap: 12,
   },
+  cardNarrow: {
+    width: "100%",
+    maxWidth: 560,
+    alignSelf: "center",
+  },
+  cardWide: {
+    width: "100%",
+    maxWidth: 730,
+    alignSelf: "center",
+  },
   title: {
     fontSize: 28,
     fontWeight: "700",
     color: colors.primary,
   },
+  textCenter: {
+    textAlign: "center",
+  },
   subtitle: {
     fontSize: 18,
-    color: colors.text,
+    color: colors.darkBlue,
     lineHeight: 26,
   },
   label: {
@@ -60,8 +83,11 @@ export const authStyles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 6,
   },
+  requiredAsterisk: {
+    color: colors.error,
+  },
   input: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.lightGray,
     borderWidth: 2,
     borderColor: colors.border,
     borderRadius: 10,
@@ -83,16 +109,19 @@ export const authStyles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   buttonSecondary: {
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.accent,
   },
   buttonText: {
-    color: "#FFFFFF",
+    color: colors.darkBlue,
     fontSize: 18,
     fontWeight: "700",
   },
   linksRow: {
     gap: 10,
     marginTop: 8,
+  },
+  linksRowCentered: {
+    alignItems: "center",
   },
   linkText: {
     color: colors.primary,
@@ -108,10 +137,10 @@ export const authStyles = StyleSheet.create({
   },
   messageError: {
     color: colors.error,
-    backgroundColor: "#FDECEC",
+    backgroundColor: "#FBEAE8",
   },
   messageSuccess: {
-    color: colors.success,
-    backgroundColor: "#E9F7EC",
+    color: "#2E6B46",
+    backgroundColor: "#EAF5EE",
   },
 });
