@@ -1,13 +1,21 @@
-import { useEffect, useState } from "react";
-import { Link } from "expo-router";
-import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import DateTimePicker, {
+  type DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import { Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { authStyles } from "../src/styles/auth-styles";
+import { Link } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import {
   obtenerCategoriasViviendasPublicas,
-  obtenerEstatusMaritalesPublicos,
   obtenerEstadosPublicos,
+  obtenerEstatusMaritalesPublicos,
   obtenerGenerosPublicos,
   obtenerMunicipiosPorEstado,
   obtenerTiposUsuariosPublicos,
@@ -21,6 +29,7 @@ import {
   type RegistroPublicoPayload,
   type TipoUsuarioOption,
 } from "../src/services/auth-api";
+import { authStyles } from "../src/styles/auth-styles";
 
 type FormState = Record<keyof RegistroPublicoPayload, string>;
 
@@ -117,20 +126,32 @@ export default function RegistroPublicoScreen() {
   const [estados, setEstados] = useState<EstadoOption[]>([]);
   const [municipios, setMunicipios] = useState<MunicipioOption[]>([]);
   const [generos, setGeneros] = useState<GeneroOption[]>([]);
-  const [estatusUsuarios, setEstatusUsuarios] = useState<EstatusUsuarioOption[]>([]);
-  const [estatusMaritales, setEstatusMaritales] = useState<EstatusMaritalOption[]>([]);
-  const [categoriasVivienda, setCategoriasVivienda] = useState<CategoriaViviendaOption[]>([]);
+  const [estatusUsuarios, setEstatusUsuarios] = useState<
+    EstatusUsuarioOption[]
+  >([]);
+  const [estatusMaritales, setEstatusMaritales] = useState<
+    EstatusMaritalOption[]
+  >([]);
+  const [categoriasVivienda, setCategoriasVivienda] = useState<
+    CategoriaViviendaOption[]
+  >([]);
   const [loadingTiposUsuarios, setLoadingTiposUsuarios] = useState(true);
   const [loadingCatalogos, setLoadingCatalogos] = useState(true);
   const [loadingMunicipios, setLoadingMunicipios] = useState(false);
 
   const updateField = (field: keyof RegistroPublicoPayload, value: string) => {
     if (field === "telefono_personal" || field === "telefono_contacto") {
-      setForm((prev) => ({ ...prev, [field]: value.replace(/\D/g, "").slice(0, 10) }));
+      setForm((prev) => ({
+        ...prev,
+        [field]: value.replace(/\D/g, "").slice(0, 10),
+      }));
       return;
     }
     if (field === "codigo_postal") {
-      setForm((prev) => ({ ...prev, [field]: value.replace(/\D/g, "").slice(0, 5) }));
+      setForm((prev) => ({
+        ...prev,
+        [field]: value.replace(/\D/g, "").slice(0, 5),
+      }));
       return;
     }
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -163,7 +184,10 @@ export default function RegistroPublicoScreen() {
     setForm(initialState);
   };
 
-  const onBirthdateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+  const onBirthdateChange = (
+    event: DateTimePickerEvent,
+    selectedDate?: Date,
+  ) => {
     if (event.type === "dismissed") {
       setShowBirthdatePicker(false);
       return;
@@ -196,9 +220,14 @@ export default function RegistroPublicoScreen() {
       setLoadingCatalogos(false);
 
       const errores: string[] = [];
-      const tipos = tiposUsuariosResult.success && tiposUsuariosResult.data ? tiposUsuariosResult.data : [];
-      const estadosDisponibles = estadosResult.success && estadosResult.data ? estadosResult.data : [];
-      const generosDisponibles = generosResult.success && generosResult.data ? generosResult.data : [];
+      const tipos =
+        tiposUsuariosResult.success && tiposUsuariosResult.data
+          ? tiposUsuariosResult.data
+          : [];
+      const estadosDisponibles =
+        estadosResult.success && estadosResult.data ? estadosResult.data : [];
+      const generosDisponibles =
+        generosResult.success && generosResult.data ? generosResult.data : [];
       const estatusMaritalesDisponibles =
         estatusMaritalesResult.success && estatusMaritalesResult.data
           ? estatusMaritalesResult.data
@@ -211,8 +240,10 @@ export default function RegistroPublicoScreen() {
       if (tipos.length === 0) errores.push("tipos de usuario");
       if (estadosDisponibles.length === 0) errores.push("estados");
       if (generosDisponibles.length === 0) errores.push("géneros");
-      if (estatusMaritalesDisponibles.length === 0) errores.push("estatus maritales");
-      if (categoriasDisponibles.length === 0) errores.push("categorías de vivienda");
+      if (estatusMaritalesDisponibles.length === 0)
+        errores.push("estatus maritales");
+      if (categoriasDisponibles.length === 0)
+        errores.push("categorías de vivienda");
 
       setTiposUsuarios(tipos);
       setEstados(estadosDisponibles);
@@ -225,9 +256,17 @@ export default function RegistroPublicoScreen() {
       setForm((prev) => ({
         ...prev,
         id_tipousuario: tipos.length > 0 ? String(tipos[0].id_tipousuario) : "",
-        id_estado: estadosDisponibles.length > 0 ? String(estadosDisponibles[0].id_estado) : "",
-        id_genero: generosDisponibles.length > 0 ? String(generosDisponibles[0].id_genero) : "",
-        id_estatus_usuario: String(fallbackEstatusUsuarios[0].id_estatususuario),
+        id_estado:
+          estadosDisponibles.length > 0
+            ? String(estadosDisponibles[0].id_estado)
+            : "",
+        id_genero:
+          generosDisponibles.length > 0
+            ? String(generosDisponibles[0].id_genero)
+            : "",
+        id_estatus_usuario: String(
+          fallbackEstatusUsuarios[0].id_estatususuario,
+        ),
         id_estatus_marital:
           estatusMaritalesDisponibles.length > 0
             ? String(estatusMaritalesDisponibles[0].id_estatusmarital)
@@ -239,7 +278,9 @@ export default function RegistroPublicoScreen() {
       }));
 
       if (errores.length > 0) {
-        setError(`No se pudieron cargar algunos catálogos: ${errores.join(", ")}.`);
+        setError(
+          `No se pudieron cargar algunos catálogos: ${errores.join(", ")}.`,
+        );
       } else {
         setError("");
       }
@@ -271,7 +312,9 @@ export default function RegistroPublicoScreen() {
       setForm((prev) => ({
         ...prev,
         id_municipio:
-          result.data.length > 0 ? String(result.data[0].num_municipio) : "",
+          result.data && result.data.length > 0
+            ? String(result.data[0].num_municipio)
+            : "",
       }));
     };
 
@@ -279,7 +322,10 @@ export default function RegistroPublicoScreen() {
   }, [form.id_estado]);
 
   return (
-    <ScrollView style={authStyles.screen} contentContainerStyle={authStyles.content}>
+    <ScrollView
+      style={authStyles.screen}
+      contentContainerStyle={authStyles.content}
+    >
       <View style={authStyles.card}>
         <Text style={authStyles.title}>Registro Público</Text>
         <Text style={authStyles.subtitle}>
@@ -287,13 +333,25 @@ export default function RegistroPublicoScreen() {
         </Text>
 
         <Text style={authStyles.label}>Nombre *</Text>
-        <TextInput style={authStyles.input} value={form.nombre} onChangeText={(v) => updateField("nombre", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.nombre}
+          onChangeText={(v) => updateField("nombre", v)}
+        />
 
         <Text style={authStyles.label}>Apellido paterno</Text>
-        <TextInput style={authStyles.input} value={form.ap_paterno} onChangeText={(v) => updateField("ap_paterno", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.ap_paterno}
+          onChangeText={(v) => updateField("ap_paterno", v)}
+        />
 
         <Text style={authStyles.label}>Apellido materno</Text>
-        <TextInput style={authStyles.input} value={form.ap_materno} onChangeText={(v) => updateField("ap_materno", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.ap_materno}
+          onChangeText={(v) => updateField("ap_materno", v)}
+        />
 
         <Text style={authStyles.label}>Fecha de nacimiento (YYYY-MM-DD)</Text>
         {isWeb ? (
@@ -307,8 +365,13 @@ export default function RegistroPublicoScreen() {
                 if (error) setError("");
               }}
               onBlur={() => {
-                if (form.fecha_nacimiento && !isValidDateText(form.fecha_nacimiento)) {
-                  setError("La fecha de nacimiento debe tener formato YYYY-MM-DD.");
+                if (
+                  form.fecha_nacimiento &&
+                  !isValidDateText(form.fecha_nacimiento)
+                ) {
+                  setError(
+                    "La fecha de nacimiento debe tener formato YYYY-MM-DD.",
+                  );
                 }
               }}
               style={{
@@ -324,8 +387,16 @@ export default function RegistroPublicoScreen() {
           </View>
         ) : (
           <>
-            <Pressable style={authStyles.input} onPress={() => setShowBirthdatePicker(true)}>
-              <Text style={{ fontSize: 18, color: form.fecha_nacimiento ? "#1D1D1D" : "#6B6B6B" }}>
+            <Pressable
+              style={authStyles.input}
+              onPress={() => setShowBirthdatePicker(true)}
+            >
+              <Text
+                style={{
+                  fontSize: 18,
+                  color: form.fecha_nacimiento ? "#1D1D1D" : "#6B6B6B",
+                }}
+              >
                 {form.fecha_nacimiento || "Seleccionar fecha"}
               </Text>
             </Pressable>
@@ -346,19 +417,39 @@ export default function RegistroPublicoScreen() {
         )}
 
         <Text style={authStyles.label}>Número celular personal *</Text>
-        <TextInput style={authStyles.input} value={form.telefono_personal} keyboardType="numeric" maxLength={10} onChangeText={(v) => updateField("telefono_personal", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.telefono_personal}
+          keyboardType="numeric"
+          maxLength={10}
+          onChangeText={(v) => updateField("telefono_personal", v)}
+        />
 
         <Text style={authStyles.label}>Número de contacto</Text>
-        <TextInput style={authStyles.input} value={form.telefono_contacto} keyboardType="numeric" maxLength={10} onChangeText={(v) => updateField("telefono_contacto", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.telefono_contacto}
+          keyboardType="numeric"
+          maxLength={10}
+          onChangeText={(v) => updateField("telefono_contacto", v)}
+        />
 
         <Text style={authStyles.label}>Correo electrónico *</Text>
-        <TextInput style={authStyles.input} value={form.email} keyboardType="email-address" autoCapitalize="none" onChangeText={(v) => updateField("email", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          onChangeText={(v) => updateField("email", v)}
+        />
 
         <Text style={authStyles.label}>Tipo de usuario *</Text>
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_tipousuario}
-            onValueChange={(value) => updateField("id_tipousuario", String(value))}
+            onValueChange={(value) =>
+              updateField("id_tipousuario", String(value))
+            }
             enabled={!loadingTiposUsuarios && tiposUsuarios.length > 0}
           >
             {loadingTiposUsuarios ? (
@@ -384,7 +475,9 @@ export default function RegistroPublicoScreen() {
             onValueChange={(value) => updateField("id_estado", String(value))}
             enabled={!loadingCatalogos && estados.length > 0}
           >
-            {loadingCatalogos ? <Picker.Item label="Cargando estados..." value="" /> : null}
+            {loadingCatalogos ? (
+              <Picker.Item label="Cargando estados..." value="" />
+            ) : null}
             {!loadingCatalogos && estados.length === 0 ? (
               <Picker.Item label="Sin opciones disponibles" value="" />
             ) : null}
@@ -402,10 +495,14 @@ export default function RegistroPublicoScreen() {
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_municipio}
-            onValueChange={(value) => updateField("id_municipio", String(value))}
+            onValueChange={(value) =>
+              updateField("id_municipio", String(value))
+            }
             enabled={!loadingMunicipios && municipios.length > 0}
           >
-            {loadingMunicipios ? <Picker.Item label="Cargando municipios..." value="" /> : null}
+            {loadingMunicipios ? (
+              <Picker.Item label="Cargando municipios..." value="" />
+            ) : null}
             {!loadingMunicipios && municipios.length === 0 ? (
               <Picker.Item label="Sin opciones disponibles" value="" />
             ) : null}
@@ -420,25 +517,55 @@ export default function RegistroPublicoScreen() {
         </View>
 
         <Text style={authStyles.label}>Colonia *</Text>
-        <TextInput style={authStyles.input} value={form.colonia} onChangeText={(v) => updateField("colonia", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.colonia}
+          onChangeText={(v) => updateField("colonia", v)}
+        />
 
         <Text style={authStyles.label}>Calle *</Text>
-        <TextInput style={authStyles.input} value={form.calle} onChangeText={(v) => updateField("calle", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.calle}
+          onChangeText={(v) => updateField("calle", v)}
+        />
 
         <Text style={authStyles.label}>Número interior</Text>
-        <TextInput style={authStyles.input} value={form.numero_int} onChangeText={(v) => updateField("numero_int", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.numero_int}
+          onChangeText={(v) => updateField("numero_int", v)}
+        />
 
         <Text style={authStyles.label}>Número exterior</Text>
-        <TextInput style={authStyles.input} value={form.numero_ext} onChangeText={(v) => updateField("numero_ext", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.numero_ext}
+          onChangeText={(v) => updateField("numero_ext", v)}
+        />
 
         <Text style={authStyles.label}>Código postal *</Text>
-        <TextInput style={authStyles.input} value={form.codigo_postal} keyboardType="numeric" maxLength={5} onChangeText={(v) => updateField("codigo_postal", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.codigo_postal}
+          keyboardType="numeric"
+          maxLength={5}
+          onChangeText={(v) => updateField("codigo_postal", v)}
+        />
 
         <Text style={authStyles.label}>Razón social</Text>
-        <TextInput style={authStyles.input} value={form.razon_social} onChangeText={(v) => updateField("razon_social", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.razon_social}
+          onChangeText={(v) => updateField("razon_social", v)}
+        />
 
         <Text style={authStyles.label}>RFC</Text>
-        <TextInput style={authStyles.input} value={form.rfc} onChangeText={(v) => updateField("rfc", v)} />
+        <TextInput
+          style={authStyles.input}
+          value={form.rfc}
+          onChangeText={(v) => updateField("rfc", v)}
+        />
 
         <Text style={authStyles.label}>Género *</Text>
         <View style={authStyles.input}>
@@ -447,7 +574,9 @@ export default function RegistroPublicoScreen() {
             onValueChange={(value) => updateField("id_genero", String(value))}
             enabled={!loadingCatalogos && generos.length > 0}
           >
-            {loadingCatalogos ? <Picker.Item label="Cargando géneros..." value="" /> : null}
+            {loadingCatalogos ? (
+              <Picker.Item label="Cargando géneros..." value="" />
+            ) : null}
             {!loadingCatalogos && generos.length === 0 ? (
               <Picker.Item label="Sin opciones disponibles" value="" />
             ) : null}
@@ -465,10 +594,14 @@ export default function RegistroPublicoScreen() {
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_estatus_usuario}
-            onValueChange={(value) => updateField("id_estatus_usuario", String(value))}
+            onValueChange={(value) =>
+              updateField("id_estatus_usuario", String(value))
+            }
             enabled={!loadingCatalogos && estatusUsuarios.length > 0}
           >
-            {loadingCatalogos ? <Picker.Item label="Cargando estatus..." value="" /> : null}
+            {loadingCatalogos ? (
+              <Picker.Item label="Cargando estatus..." value="" />
+            ) : null}
             {!loadingCatalogos && estatusUsuarios.length === 0 ? (
               <Picker.Item label="Sin opciones disponibles" value="" />
             ) : null}
@@ -486,10 +619,14 @@ export default function RegistroPublicoScreen() {
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_estatus_marital}
-            onValueChange={(value) => updateField("id_estatus_marital", String(value))}
+            onValueChange={(value) =>
+              updateField("id_estatus_marital", String(value))
+            }
             enabled={!loadingCatalogos && estatusMaritales.length > 0}
           >
-            {loadingCatalogos ? <Picker.Item label="Cargando estatus marital..." value="" /> : null}
+            {loadingCatalogos ? (
+              <Picker.Item label="Cargando estatus marital..." value="" />
+            ) : null}
             {!loadingCatalogos && estatusMaritales.length === 0 ? (
               <Picker.Item label="Sin opciones disponibles" value="" />
             ) : null}
@@ -507,10 +644,14 @@ export default function RegistroPublicoScreen() {
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_categoria_vivienda}
-            onValueChange={(value) => updateField("id_categoria_vivienda", String(value))}
+            onValueChange={(value) =>
+              updateField("id_categoria_vivienda", String(value))
+            }
             enabled={!loadingCatalogos && categoriasVivienda.length > 0}
           >
-            {loadingCatalogos ? <Picker.Item label="Cargando categorías..." value="" /> : null}
+            {loadingCatalogos ? (
+              <Picker.Item label="Cargando categorías..." value="" />
+            ) : null}
             {!loadingCatalogos && categoriasVivienda.length === 0 ? (
               <Picker.Item label="Sin opciones disponibles" value="" />
             ) : null}
@@ -525,10 +666,14 @@ export default function RegistroPublicoScreen() {
         </View>
 
         {error ? (
-          <Text style={[authStyles.message, authStyles.messageError]}>{error}</Text>
+          <Text style={[authStyles.message, authStyles.messageError]}>
+            {error}
+          </Text>
         ) : null}
         {message ? (
-          <Text style={[authStyles.message, authStyles.messageSuccess]}>{message}</Text>
+          <Text style={[authStyles.message, authStyles.messageSuccess]}>
+            {message}
+          </Text>
         ) : null}
 
         <Pressable
