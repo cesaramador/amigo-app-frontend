@@ -18,6 +18,22 @@ type ApiResult<T = unknown> = {
   data?: T;
 };
 
+export type UsuarioSesion = {
+  id_usuario: number;
+  nombre: string;
+  ap_paterno?: string | null;
+  ap_materno?: string | null;
+  telefono_personal: string;
+  email?: string | null;
+};
+
+export type InicioSesionData = {
+  token: string;
+  idSession: string;
+  userSession: string;
+  user: UsuarioSesion;
+};
+
 export type TipoUsuarioOption = {
   id_tipousuario: number;
   tipo_usuario: string;
@@ -57,7 +73,10 @@ export type CategoriaViviendaOption = {
 
 async function getJson<T>(path: string): Promise<ApiResult<T>> {
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`);
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: buildAuthHeaders(),
+      credentials: "include",
+    });
     const rawBody = await response.text();
     const json = rawBody ? (JSON.parse(rawBody) as ApiResult<T>) : null;
     if (!response.ok) {
@@ -83,12 +102,15 @@ async function getJson<T>(path: string): Promise<ApiResult<T>> {
   }
 }
 
-async function postJson<T>(path: string, payload: unknown): Promise<ApiResult<T>> {
+async function postJson<T>(path: string, payload?: unknown): Promise<ApiResult<T>> {
   try {
+    const hasPayload = payload !== undefined;
+    const jsonHeaders = hasPayload ? { "Content-Type": "application/json" } : undefined;
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: buildAuthHeaders(jsonHeaders),
+      body: hasPayload ? JSON.stringify(payload) : undefined,
+      credentials: "include",
     });
 
     const rawBody = await response.text();
@@ -118,11 +140,47 @@ async function postJson<T>(path: string, payload: unknown): Promise<ApiResult<T>
 }
 
 export function iniciarSesion(telefono_personal: string, codigo: string) {
-  return postJson("/auth/iniciar", { telefono_personal, codigo });
+  return postJson<InicioSesionData>("/auth/iniciar", { telefono_personal, codigo });
 }
 
 export function recuperarCodigo(telefono_personal: string, email: string) {
   return postJson("/auth/recuperar-codigo", { telefono_personal, email });
+}
+
+export function abandonarSesion() {
+  return postJson("/auth/abandonar");
+}
+
+const AUTH_SESSION_KEY = "amigo.auth.session";
+
+export function guardarSesionActiva(data: InicioSesionData) {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(data));
+}
+
+export function leerSesionActiva(): InicioSesionData | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.sessionStorage.getItem(AUTH_SESSION_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as InicioSesionData;
+  } catch {
+    return null;
+  }
+}
+
+export function limpiarSesionActiva() {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(AUTH_SESSION_KEY);
+}
+
+function buildAuthHeaders(baseHeaders?: Record<string, string>) {
+  const session = leerSesionActiva();
+  if (!session?.token) return baseHeaders;
+  return {
+    ...(baseHeaders || {}),
+    Authorization: `Bearer ${session.token}`,
+  };
 }
 
 export type RegistroPublicoPayload = {

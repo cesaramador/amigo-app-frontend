@@ -23,6 +23,19 @@ export const authStyles = StyleSheet.create({
     padding: 20,
     gap: 14,
   },
+  dashboardContent: {
+    justifyContent: "flex-start",
+  },
+  topBar: {
+    width: "100%",
+    alignItems: "flex-end",
+    marginBottom: 6,
+  },
+  topBarText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: "700",
+  },
   card: {
     backgroundColor: colors.surface,
     borderRadius: 14,

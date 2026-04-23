@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Link, router } from "expo-router";
 import { authStyles } from "../src/styles/auth-styles";
-import { iniciarSesion } from "../src/services/auth-api";
+import { guardarSesionActiva, iniciarSesion } from "../src/services/auth-api";
 
 export default function Index() {
   const [telefonoPersonal, setTelefonoPersonal] = useState("");
@@ -44,6 +44,12 @@ export default function Index() {
       return;
     }
 
+    if (!result.data?.token || !result.data?.idSession || !result.data?.userSession || !result.data?.user) {
+      setError("El servidor no devolvió una sesión válida. Intente nuevamente.");
+      return;
+    }
+
+    guardarSesionActiva(result.data);
     router.replace("/dashboard");
   };
 
