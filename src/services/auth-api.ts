@@ -1,6 +1,42 @@
-function resolveApiBaseUrl() {
+import { Platform } from "react-native";
+
+type ApiResult<T = unknown> = {
+  success: boolean;
+  message: string;
+  data?: T;
+};
+
+/** API en nube (mismo host que sirve la raíz JSON de bienvenida). */
+const PRODUCTION_API_FALLBACK = "https://amigo.dextrati.cloud/api/v1";
+
+function useLocalNodeApi(): boolean {
+  const v = process.env.EXPO_PUBLIC_USE_LOCAL_API?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
+function isLoopbackHostname(host: string | undefined): boolean {
+  if (!host) return false;
+  const h = host.toLowerCase();
+  return h === "localhost" || h === "127.0.0.1" || h === "[::1]" || h === "::1";
+}
+
+function isPrivateLanHostname(host: string | undefined): boolean {
+  if (!host) return false;
+  return (
+    /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host) ||
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(host)
+  );
+}
+
+/**
+ * URL del API en tiempo de petición (no cachear en constante de módulo):
+ * con Expo `web.output: "static"` o SSR, una constante global podía resolverse sin `window`
+ * y apuntar a producción mientras la app corre en http://localhost:8081.
+ */
+export function getApiBaseUrl(): string {
   const raw = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
-  const fallback = "https://amigo.dextrati.cloud/api/v1";
+  const localPort = process.env.EXPO_PUBLIC_API_LOCAL_PORT?.trim() || "5500";
 
   if (raw) {
     const sanitized = raw.replace(/\/+$/, "");
@@ -9,26 +45,51 @@ function resolveApiBaseUrl() {
     return `${sanitized}/api/v1`;
   }
 
-  // Web en localhost: usar API local si no hay EXPO_PUBLIC_API_BASE_URL (puerto por defecto del backend).
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && Platform.OS === "web") {
     const host = window.location?.hostname;
-    if (host === "localhost" || host === "127.0.0.1") {
-      const localPort =
-        process.env.EXPO_PUBLIC_API_LOCAL_PORT?.trim() || "5500";
-      return `http://${host}:${localPort}/api/v1`;
+    // Por defecto el backend está en la nube; API local solo con EXPO_PUBLIC_USE_LOCAL_API=1
+    // o con EXPO_PUBLIC_API_BASE_URL (arriba).
+    if (isLoopbackHostname(host)) {
+      if (useLocalNodeApi()) {
+        return `http://127.0.0.1:${localPort}/api/v1`;
+      }
+      return PRODUCTION_API_FALLBACK;
+    }
+    // Expo web por IP de LAN: mismo criterio (nube por defecto).
+    if (isPrivateLanHostname(host)) {
+      if (useLocalNodeApi()) {
+        return `http://${host}:${localPort}/api/v1`;
+      }
+      return PRODUCTION_API_FALLBACK;
+    }
+    // Sitio desplegado bajo dextrati.cloud → mismo origen /api/v1 (sin depender de constante de build).
+    if (host && /\.dextrati\.cloud$/i.test(host)) {
+      const { protocol, port } = window.location;
+      const origin = `${protocol}//${host}${port ? `:${port}` : ""}`;
+      return `${origin}/api/v1`;
     }
   }
 
-  return fallback;
+  return PRODUCTION_API_FALLBACK;
 }
 
-const API_BASE_URL = resolveApiBaseUrl();
+function normalizeCatalogData<T>(body: ApiResult<T>): ApiResult<T> {
+  const d = body.data as unknown;
+  if (Array.isArray(d)) return body;
+  if (d && typeof d === "object" && Array.isArray((d as { rows?: unknown }).rows)) {
+    return { ...body, data: (d as { rows: T }).rows };
+  }
+  return body;
+}
 
-type ApiResult<T = unknown> = {
-  success: boolean;
-  message: string;
-  data?: T;
-};
+function safeParseApiResult<T>(rawBody: string): ApiResult<T> | null {
+  if (!rawBody?.trim()) return null;
+  try {
+    return JSON.parse(rawBody) as ApiResult<T>;
+  } catch {
+    return null;
+  }
+}
 
 export type UsuarioSesion = {
   id_usuario: number;
@@ -87,44 +148,55 @@ export type CategoriaViviendaOption = {
  * GET sin cookies ni Authorization: catálogos públicos y registro desde cualquier red / WebView.
  */
 async function getJsonPublic<T>(path: string): Promise<ApiResult<T>> {
+  const base = getApiBaseUrl();
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${base}${path}`, {
       headers: { Accept: "application/json" },
       credentials: "omit",
     });
     const rawBody = await response.text();
-    const json = rawBody ? (JSON.parse(rawBody) as ApiResult<T>) : null;
+    const parsed = safeParseApiResult<T>(rawBody);
+    if (!parsed && rawBody.trim()) {
+      return {
+        success: false,
+        message: `Respuesta no JSON (${response.status}) en ${path}. ¿El backend está en ${base}?`,
+      };
+    }
+    const json = parsed
+      ? normalizeCatalogData(parsed)
+      : ({
+          success: false,
+          message: "Respuesta vacía del servidor.",
+        } as ApiResult<T>);
     if (!response.ok) {
       return {
         success: false,
         message:
-          json?.message ||
+          json.message ||
           `Error ${response.status} al consultar catálogo (${path}).`,
       };
     }
-    return (
-      json ?? {
-        success: false,
-        message: "Respuesta vacía del servidor.",
-      }
-    );
+    return json;
   } catch {
+    const hint = base.includes("127.0.0.1")
+      ? ` Verifique que el API local esté en marcha (puerto ${process.env.EXPO_PUBLIC_API_LOCAL_PORT?.trim() || "5500"}).`
+      : " Verifique su red o que el servicio en la nube esté disponible.";
     return {
       success: false,
-      message:
-        "No fue posible conectar con el servidor. Verifique su red o URL del API.",
+      message: `No fue posible conectar con el servidor (${base}).${hint}`,
     };
   }
 }
 
 async function getJson<T>(path: string): Promise<ApiResult<T>> {
+  const base = getApiBaseUrl();
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${base}${path}`, {
       headers: buildAuthHeaders(),
       credentials: "include",
     });
     const rawBody = await response.text();
-    const json = rawBody ? (JSON.parse(rawBody) as ApiResult<T>) : null;
+    const json = safeParseApiResult<T>(rawBody);
     if (!response.ok) {
       return {
         success: false,
@@ -142,17 +214,17 @@ async function getJson<T>(path: string): Promise<ApiResult<T>> {
   } catch {
     return {
       success: false,
-      message:
-        "No fue posible conectar con el servidor. Verifique su red o URL del API.",
+      message: `No fue posible conectar con el servidor (${base}).`,
     };
   }
 }
 
 async function postJson<T>(path: string, payload?: unknown): Promise<ApiResult<T>> {
+  const base = getApiBaseUrl();
   try {
     const hasPayload = payload !== undefined;
     const jsonHeaders = hasPayload ? { "Content-Type": "application/json" } : undefined;
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${base}${path}`, {
       method: "POST",
       headers: buildAuthHeaders(jsonHeaders),
       body: hasPayload ? JSON.stringify(payload) : undefined,
@@ -160,7 +232,7 @@ async function postJson<T>(path: string, payload?: unknown): Promise<ApiResult<T
     });
 
     const rawBody = await response.text();
-    const json = rawBody ? (JSON.parse(rawBody) as ApiResult<T>) : null;
+    const json = safeParseApiResult<T>(rawBody);
     if (!response.ok) {
       return {
         success: false,
@@ -179,8 +251,7 @@ async function postJson<T>(path: string, payload?: unknown): Promise<ApiResult<T
   } catch {
     return {
       success: false,
-      message:
-        "No fue posible conectar con el servidor. Verifique su red o URL del API.",
+      message: `No fue posible conectar con el servidor (${base}).`,
     };
   }
 }

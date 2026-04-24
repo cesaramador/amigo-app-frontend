@@ -294,8 +294,14 @@ export default function RegistroPublicoScreen() {
       }));
 
       if (errores.length > 0) {
+        const detalle =
+          tiposUsuariosResult.message ||
+          estadosResult.message ||
+          generosResult.message ||
+          estatusMaritalesResult.message ||
+          categoriasViviendaResult.message;
         setError(
-          `No se pudieron cargar algunos catálogos: ${errores.join(", ")}.`,
+          `No se pudieron cargar algunos catálogos: ${errores.join(", ")}.${detalle ? ` ${detalle}` : ""}`,
         );
       } else {
         setError("");
