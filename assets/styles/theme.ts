@@ -4,6 +4,29 @@ import { uiTokens } from "./tokens";
 export type DashboardModuleAccent = "green" | "yellow" | "blue" | "lavender";
 
 export const dashboardTheme = StyleSheet.create({
+  welcomeBlock: {
+    width: "100%",
+    alignItems: "flex-end",
+    marginBottom: uiTokens.spacing.lg,
+    paddingBottom: uiTokens.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: uiTokens.color.border,
+  },
+  welcomeTitle: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: uiTokens.color.primary,
+    textAlign: "right",
+    letterSpacing: 0.2,
+  },
+  welcomeSubtitle: {
+    marginTop: uiTokens.spacing.xs,
+    fontSize: uiTokens.typography.bodySize,
+    color: uiTokens.color.muted,
+    lineHeight: uiTokens.typography.bodyLineHeight,
+    textAlign: "right",
+    maxWidth: "100%",
+  },
   sectionTitle: {
     fontSize: 22,
     fontWeight: "700",

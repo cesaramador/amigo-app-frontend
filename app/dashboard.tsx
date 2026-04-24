@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { Button, Card, ModuleCard } from "../assets/components/ui";
 import { dashboardTheme } from "../assets/styles/theme";
@@ -7,10 +7,28 @@ import { dashboardModules } from "../assets/data/dashboard-modules";
 import { authStyles } from "../src/styles/auth-styles";
 import { abandonarSesion, leerSesionActiva, limpiarSesionActiva } from "../src/services/auth-api";
 
+/** Solo nombre de pila (campo `nombre`), cada palabra con mayúscula inicial. */
+function tituloNombrePropio(nombreRaw: string): string {
+  const partes = String(nombreRaw ?? "")
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p.length > 0)
+    .map((palabra) => {
+      const lower = palabra.toLocaleLowerCase("es");
+      return lower.charAt(0).toLocaleUpperCase("es") + lower.slice(1);
+    });
+  return partes.join(" ");
+}
+
 export default function DashboardScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [nombreCompleto, setNombreCompleto] = useState("");
+  const [nombreSaludo, setNombreSaludo] = useState(() => {
+    const s = leerSesionActiva();
+    if (!s?.user?.nombre) return "";
+    const n = tituloNombrePropio(s.user.nombre);
+    return n.length > 0 ? n : "Amigo";
+  });
 
   useEffect(() => {
     const sesion = leerSesionActiva();
@@ -19,18 +37,9 @@ export default function DashboardScreen() {
       return;
     }
 
-    const partesNombre = [sesion.user.nombre, sesion.user.ap_paterno, sesion.user.ap_materno]
-      .filter(Boolean)
-      .map((valor) => String(valor).trim())
-      .filter((valor) => valor.length > 0);
-
-    setNombreCompleto(partesNombre.join(" "));
+    const soloNombre = tituloNombrePropio(sesion.user.nombre);
+    setNombreSaludo(soloNombre.length > 0 ? soloNombre : "Amigo");
   }, []);
-
-  const saludoUsuario = useMemo(() => {
-    if (!nombreCompleto) return "Bienvenido";
-    return `Bienvenido ${nombreCompleto}`;
-  }, [nombreCompleto]);
 
   const onCerrarSesion = async () => {
     setError("");
@@ -59,12 +68,15 @@ export default function DashboardScreen() {
       style={authStyles.screen}
       contentContainerStyle={[authStyles.content, authStyles.dashboardContent]}
     >
-      <View style={authStyles.topBar}>
-        <Text style={authStyles.topBarText}>{saludoUsuario}</Text>
-      </View>
       <Card>
-        <Text style={authStyles.title}>Bienvenido al Dashboard</Text>
-        <Text style={dashboardTheme.sectionSubtitle}>Inicio de sesión correcto.</Text>
+        <View style={dashboardTheme.welcomeBlock}>
+          <Text style={dashboardTheme.welcomeTitle}>
+            Hola, {nombreSaludo} 👋 ✨
+          </Text>
+          <Text style={dashboardTheme.welcomeSubtitle}>
+            Hoy es un buen día para cuidar de tu salud. Gracias por confiar en este espacio.
+          </Text>
+        </View>
 
         <Text style={dashboardTheme.sectionTitle}>Secciones del sistema</Text>
         <View style={dashboardTheme.modulesGrid}>

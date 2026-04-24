@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
 type ApiResult<T = unknown> = {
@@ -71,6 +72,26 @@ export function getApiBaseUrl(): string {
   }
 
   return PRODUCTION_API_FALLBACK;
+}
+
+/** Cabeceras base para `fetch` en React Native (OkHttp) y web. */
+function buildDefaultFetchHeaders(extra?: Record<string, string>): Record<string, string> {
+  return {
+    Accept: "application/json",
+    // En algunos Android + HTTPS, el manejo de compresión puede fallar; `identity` evita el error genérico de red.
+    "Accept-Encoding": "identity",
+    ...(extra || {}),
+  };
+}
+
+function hintFalloRed(base: string): string {
+  if (base.includes("127.0.0.1") || base.includes("localhost")) {
+    return ` Verifique que el API local esté en marcha (puerto ${process.env.EXPO_PUBLIC_API_LOCAL_PORT?.trim() || "5500"}).`;
+  }
+  if (Platform.OS !== "web") {
+    return " Verifique datos móviles o Wi‑Fi. Si prueba contra un API en su PC, defina EXPO_PUBLIC_API_BASE_URL con la IP de la máquina (desde el teléfono, localhost no funciona).";
+  }
+  return " Verifique su red o que el servicio en la nube esté disponible.";
 }
 
 function normalizeCatalogData<T>(body: ApiResult<T>): ApiResult<T> {
@@ -151,7 +172,7 @@ async function getJsonPublic<T>(path: string): Promise<ApiResult<T>> {
   const base = getApiBaseUrl();
   try {
     const response = await fetch(`${base}${path}`, {
-      headers: { Accept: "application/json" },
+      headers: buildDefaultFetchHeaders(),
       credentials: "omit",
     });
     const rawBody = await response.text();
@@ -177,13 +198,11 @@ async function getJsonPublic<T>(path: string): Promise<ApiResult<T>> {
       };
     }
     return json;
-  } catch {
-    const hint = base.includes("127.0.0.1")
-      ? ` Verifique que el API local esté en marcha (puerto ${process.env.EXPO_PUBLIC_API_LOCAL_PORT?.trim() || "5500"}).`
-      : " Verifique su red o que el servicio en la nube esté disponible.";
+  } catch (err) {
+    const dev = __DEV__ && err instanceof Error ? ` Detalle: ${err.message}` : "";
     return {
       success: false,
-      message: `No fue posible conectar con el servidor (${base}).${hint}`,
+      message: `No fue posible conectar con el servidor (${base}).${hintFalloRed(base)}${dev}`,
     };
   }
 }
@@ -192,8 +211,8 @@ async function getJson<T>(path: string): Promise<ApiResult<T>> {
   const base = getApiBaseUrl();
   try {
     const response = await fetch(`${base}${path}`, {
-      headers: buildAuthHeaders(),
-      credentials: "include",
+      headers: buildDefaultFetchHeaders({ ...(buildAuthHeaders() || {}) }),
+      credentials: "omit",
     });
     const rawBody = await response.text();
     const json = safeParseApiResult<T>(rawBody);
@@ -211,10 +230,11 @@ async function getJson<T>(path: string): Promise<ApiResult<T>> {
         message: "Respuesta vacía del servidor.",
       }
     );
-  } catch {
+  } catch (err) {
+    const dev = __DEV__ && err instanceof Error ? ` Detalle: ${err.message}` : "";
     return {
       success: false,
-      message: `No fue posible conectar con el servidor (${base}).`,
+      message: `No fue posible conectar con el servidor (${base}).${hintFalloRed(base)}${dev}`,
     };
   }
 }
@@ -226,9 +246,9 @@ async function postJson<T>(path: string, payload?: unknown): Promise<ApiResult<T
     const jsonHeaders = hasPayload ? { "Content-Type": "application/json" } : undefined;
     const response = await fetch(`${base}${path}`, {
       method: "POST",
-      headers: buildAuthHeaders(jsonHeaders),
+      headers: buildDefaultFetchHeaders({ ...(buildAuthHeaders(jsonHeaders) || {}) }),
       body: hasPayload ? JSON.stringify(payload) : undefined,
-      credentials: "include",
+      credentials: "omit",
     });
 
     const rawBody = await response.text();
@@ -248,10 +268,11 @@ async function postJson<T>(path: string, payload?: unknown): Promise<ApiResult<T
         message: "Respuesta vacía del servidor.",
       }
     );
-  } catch {
+  } catch (err) {
+    const dev = __DEV__ && err instanceof Error ? ` Detalle: ${err.message}` : "";
     return {
       success: false,
-      message: `No fue posible conectar con el servidor (${base}).`,
+      message: `No fue posible conectar con el servidor (${base}).${hintFalloRed(base)}${dev}`,
     };
   }
 }
@@ -270,25 +291,53 @@ export function abandonarSesion() {
 
 const AUTH_SESSION_KEY = "amigo.auth.session";
 
-export function guardarSesionActiva(data: InicioSesionData) {
-  if (typeof window === "undefined") return;
-  window.sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(data));
-}
+/** En iOS/Android no hay `sessionStorage` fiable; memoria + AsyncStorage. */
+let sesionNativaMem: InicioSesionData | null = null;
 
-export function leerSesionActiva(): InicioSesionData | null {
-  if (typeof window === "undefined") return null;
-  const raw = window.sessionStorage.getItem(AUTH_SESSION_KEY);
-  if (!raw) return null;
+/** Llamar al iniciar la app nativa antes de leer rutas protegidas. */
+export async function hydrateSesionDesdeAsyncStorage(): Promise<void> {
+  if (Platform.OS === "web") return;
   try {
-    return JSON.parse(raw) as InicioSesionData;
+    const raw = await AsyncStorage.getItem(AUTH_SESSION_KEY);
+    sesionNativaMem = raw ? (JSON.parse(raw) as InicioSesionData) : null;
   } catch {
-    return null;
+    sesionNativaMem = null;
   }
 }
 
-export function limpiarSesionActiva() {
-  if (typeof window === "undefined") return;
-  window.sessionStorage.removeItem(AUTH_SESSION_KEY);
+export function guardarSesionActiva(data: InicioSesionData): void {
+  const raw = JSON.stringify(data);
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    window.sessionStorage.setItem(AUTH_SESSION_KEY, raw);
+    return;
+  }
+  if (Platform.OS === "web") return;
+  sesionNativaMem = data;
+  void AsyncStorage.setItem(AUTH_SESSION_KEY, raw).catch(() => {});
+}
+
+export function leerSesionActiva(): InicioSesionData | null {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    const raw = window.sessionStorage.getItem(AUTH_SESSION_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as InicioSesionData;
+    } catch {
+      return null;
+    }
+  }
+  if (Platform.OS === "web") return null;
+  return sesionNativaMem;
+}
+
+export function limpiarSesionActiva(): void {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    window.sessionStorage.removeItem(AUTH_SESSION_KEY);
+    return;
+  }
+  if (Platform.OS === "web") return;
+  sesionNativaMem = null;
+  void AsyncStorage.removeItem(AUTH_SESSION_KEY).catch(() => {});
 }
 
 function buildAuthHeaders(baseHeaders?: Record<string, string>) {

@@ -143,4 +143,23 @@ export const authStyles = StyleSheet.create({
     color: "#2E6B46",
     backgroundColor: "#EAF5EE",
   },
+  /** Espaciado en formularios de auth (login, recuperar código, etc.) */
+  authFormCard: {
+    paddingVertical: 28,
+    paddingHorizontal: uiTokens.spacing.lg,
+  },
+  authFormStack: {
+    gap: 22,
+  },
+  authFormHeader: {
+    gap: 12,
+  },
+  authFormLabelExtra: {
+    marginBottom: 10,
+  },
+  authFormLinks: {
+    gap: 16,
+    marginTop: 6,
+    alignItems: "center",
+  },
 });

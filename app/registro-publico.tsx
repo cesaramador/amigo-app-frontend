@@ -17,10 +17,8 @@ import {
   obtenerCategoriasViviendasPublicas,
   obtenerEstadosPublicos,
   obtenerEstatusMaritalesPublicos,
-  obtenerEstatusUsuariosPublicos,
   obtenerGenerosPublicos,
   obtenerMunicipiosPorEstado,
-  obtenerTiposUsuariosPublicos,
   registrarPublico,
   type CategoriaViviendaOption,
   type EstadoOption,
@@ -29,14 +27,13 @@ import {
   type GeneroOption,
   type MunicipioOption,
   type RegistroPublicoPayload,
-  type TipoUsuarioOption,
 } from "../src/services/auth-api";
 import { authStyles } from "../src/styles/auth-styles";
 
 type FormState = Record<keyof RegistroPublicoPayload, string>;
 
 const initialState: FormState = {
-  id_tipousuario: "1",
+  id_tipousuario: "3",
   nombre: "",
   ap_paterno: "",
   ap_materno: "",
@@ -54,7 +51,7 @@ const initialState: FormState = {
   razon_social: "",
   rfc: "",
   id_genero: "",
-  id_estatus_usuario: "",
+  id_estatus_usuario: "3",
   id_estatus_marital: "",
   id_categoria_vivienda: "",
 };
@@ -112,15 +109,17 @@ function isValidDateText(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
+/** Texto mostrado en pickers de catálogo (solo presentación). */
+function pickerDisplay(value: unknown): string {
+  return String(value ?? "").toUpperCase();
+}
+
 const isWeb = Platform.OS === "web";
 const todayIsoDate = formatDate(new Date());
-const fallbackEstatusUsuarios: EstatusUsuarioOption[] = [
-  { id_estatususuario: 1, estatus_usuario: "vigente" },
-];
 
 function RequiredLabel({ children }: { children: string }) {
   return (
-    <Text style={authStyles.label}>
+    <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>
       {children}
       <Text style={authStyles.requiredAsterisk}> *</Text>
     </Text>
@@ -128,25 +127,23 @@ function RequiredLabel({ children }: { children: string }) {
 }
 
 export default function RegistroPublicoScreen() {
+  /** Catálogo oculto (id fijado en backend); arreglo vacío evita ReferenceError si queda código o bundle antiguo que lee `estatusUsuarios`. */
+  const estatusUsuarios: EstatusUsuarioOption[] = [];
+
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showBirthdatePicker, setShowBirthdatePicker] = useState(false);
-  const [tiposUsuarios, setTiposUsuarios] = useState<TipoUsuarioOption[]>([]);
   const [estados, setEstados] = useState<EstadoOption[]>([]);
   const [municipios, setMunicipios] = useState<MunicipioOption[]>([]);
   const [generos, setGeneros] = useState<GeneroOption[]>([]);
-  const [estatusUsuarios, setEstatusUsuarios] = useState<
-    EstatusUsuarioOption[]
-  >([]);
   const [estatusMaritales, setEstatusMaritales] = useState<
     EstatusMaritalOption[]
   >([]);
   const [categoriasVivienda, setCategoriasVivienda] = useState<
     CategoriaViviendaOption[]
   >([]);
-  const [loadingTiposUsuarios, setLoadingTiposUsuarios] = useState(true);
   const [loadingCatalogos, setLoadingCatalogos] = useState(true);
   const [loadingMunicipios, setLoadingMunicipios] = useState(false);
 
@@ -212,31 +209,21 @@ export default function RegistroPublicoScreen() {
 
   useEffect(() => {
     const loadCatalogos = async () => {
-      setLoadingTiposUsuarios(true);
       setLoadingCatalogos(true);
       const [
-        tiposUsuariosResult,
         estadosResult,
         generosResult,
-        estatusUsuariosResult,
         estatusMaritalesResult,
         categoriasViviendaResult,
       ] = await Promise.all([
-        obtenerTiposUsuariosPublicos(),
         obtenerEstadosPublicos(),
         obtenerGenerosPublicos(),
-        obtenerEstatusUsuariosPublicos(),
         obtenerEstatusMaritalesPublicos(),
         obtenerCategoriasViviendasPublicas(),
       ]);
-      setLoadingTiposUsuarios(false);
       setLoadingCatalogos(false);
 
       const errores: string[] = [];
-      const tipos =
-        tiposUsuariosResult.success && tiposUsuariosResult.data
-          ? tiposUsuariosResult.data
-          : [];
       const estadosDisponibles =
         estadosResult.success && estadosResult.data ? estadosResult.data : [];
       const generosDisponibles =
@@ -249,12 +236,7 @@ export default function RegistroPublicoScreen() {
         categoriasViviendaResult.success && categoriasViviendaResult.data
           ? categoriasViviendaResult.data
           : [];
-      const estatusUsuariosDisponibles =
-        estatusUsuariosResult.success && estatusUsuariosResult.data?.length
-          ? estatusUsuariosResult.data
-          : fallbackEstatusUsuarios;
 
-      if (tipos.length === 0) errores.push("tipos de usuario");
       if (estadosDisponibles.length === 0) errores.push("estados");
       if (generosDisponibles.length === 0) errores.push("géneros");
       if (estatusMaritalesDisponibles.length === 0)
@@ -262,16 +244,13 @@ export default function RegistroPublicoScreen() {
       if (categoriasDisponibles.length === 0)
         errores.push("categorías de vivienda");
 
-      setTiposUsuarios(tipos);
       setEstados(estadosDisponibles);
       setGeneros(generosDisponibles);
-      setEstatusUsuarios(estatusUsuariosDisponibles);
       setEstatusMaritales(estatusMaritalesDisponibles);
       setCategoriasVivienda(categoriasDisponibles);
 
       setForm((prev) => ({
         ...prev,
-        id_tipousuario: tipos.length > 0 ? String(tipos[0].id_tipousuario) : "",
         id_estado:
           estadosDisponibles.length > 0
             ? String(estadosDisponibles[0].id_estado)
@@ -280,10 +259,6 @@ export default function RegistroPublicoScreen() {
           generosDisponibles.length > 0
             ? String(generosDisponibles[0].id_genero)
             : "",
-        id_estatus_usuario: String(
-          estatusUsuariosDisponibles[0]?.id_estatususuario ??
-            fallbackEstatusUsuarios[0].id_estatususuario,
-        ),
         id_estatus_marital:
           estatusMaritalesDisponibles.length > 0
             ? String(estatusMaritalesDisponibles[0].id_estatusmarital)
@@ -296,7 +271,6 @@ export default function RegistroPublicoScreen() {
 
       if (errores.length > 0) {
         const detalle =
-          tiposUsuariosResult.message ||
           estadosResult.message ||
           generosResult.message ||
           estatusMaritalesResult.message ||
@@ -347,36 +321,48 @@ export default function RegistroPublicoScreen() {
   return (
     <ScrollView
       style={authStyles.screen}
-      contentContainerStyle={authStyles.content}
+      contentContainerStyle={[authStyles.content, authStyles.dashboardContent]}
     >
-      <Card style={authStyles.cardWide}>
-        <Text style={[authStyles.title, authStyles.textCenter]}>Registro Público</Text>
-        <Text style={[authStyles.subtitle, authStyles.textCenter]}>
-          Complete sus datos para crear su cuenta y recibir el código por email.
-        </Text>
+      <Card style={[authStyles.cardWide, authStyles.authFormCard]}>
+        <View style={authStyles.authFormStack}>
+          <View style={authStyles.authFormHeader}>
+            <Text style={[authStyles.title, authStyles.textCenter]}>Registro Público</Text>
+            <Text style={[authStyles.subtitle, authStyles.textCenter]}>
+              Complete sus datos para crear su cuenta y recibir el código por email.
+            </Text>
+          </View>
 
+        <View>
         <RequiredLabel>Nombre</RequiredLabel>
         <TextInput
           style={authStyles.input}
           value={form.nombre}
           onChangeText={(v) => updateField("nombre", v)}
         />
+        </View>
 
-        <Text style={authStyles.label}>Apellido paterno</Text>
+        <View>
+        <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>Apellido paterno</Text>
         <TextInput
           style={authStyles.input}
           value={form.ap_paterno}
           onChangeText={(v) => updateField("ap_paterno", v)}
         />
+        </View>
 
-        <Text style={authStyles.label}>Apellido materno</Text>
+        <View>
+        <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>Apellido materno</Text>
         <TextInput
           style={authStyles.input}
           value={form.ap_materno}
           onChangeText={(v) => updateField("ap_materno", v)}
         />
+        </View>
 
-        <Text style={authStyles.label}>Fecha de nacimiento (YYYY-MM-DD)</Text>
+        <View>
+        <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>
+          Fecha de nacimiento (YYYY-MM-DD)
+        </Text>
         {isWeb ? (
           <View style={authStyles.input}>
             <input
@@ -438,7 +424,9 @@ export default function RegistroPublicoScreen() {
             ) : null}
           </>
         )}
+        </View>
 
+        <View>
         <RequiredLabel>Número celular personal</RequiredLabel>
         <TextInput
           style={authStyles.input}
@@ -447,8 +435,10 @@ export default function RegistroPublicoScreen() {
           maxLength={10}
           onChangeText={(v) => updateField("telefono_personal", v)}
         />
+        </View>
 
-        <Text style={authStyles.label}>Número de contacto</Text>
+        <View>
+        <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>Número de contacto</Text>
         <TextInput
           style={authStyles.input}
           value={form.telefono_contacto}
@@ -456,7 +446,9 @@ export default function RegistroPublicoScreen() {
           maxLength={10}
           onChangeText={(v) => updateField("telefono_contacto", v)}
         />
+        </View>
 
+        <View>
         <RequiredLabel>Correo electrónico</RequiredLabel>
         <TextInput
           style={authStyles.input}
@@ -465,33 +457,10 @@ export default function RegistroPublicoScreen() {
           autoCapitalize="none"
           onChangeText={(v) => updateField("email", v)}
         />
-
-        <RequiredLabel>Tipo de usuario</RequiredLabel>
-        <View style={authStyles.input}>
-          <Picker
-            selectedValue={form.id_tipousuario}
-            onValueChange={(value) =>
-              updateField("id_tipousuario", String(value))
-            }
-            enabled={!loadingTiposUsuarios && tiposUsuarios.length > 0}
-          >
-            {loadingTiposUsuarios ? (
-              <Picker.Item label="Cargando tipos de usuario..." value="" />
-            ) : null}
-            {!loadingTiposUsuarios && tiposUsuarios.length === 0 ? (
-              <Picker.Item label="Sin opciones disponibles" value="" />
-            ) : null}
-            {tiposUsuarios.map((tipo) => (
-              <Picker.Item
-                key={tipo.id_tipousuario}
-                label={tipo.tipo_usuario}
-                value={String(tipo.id_tipousuario)}
-              />
-            ))}
-          </Picker>
         </View>
 
-        <RequiredLabel>ID estado</RequiredLabel>
+        <View>
+        <RequiredLabel>Estado</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
             selectedValue={form.id_estado}
@@ -499,21 +468,23 @@ export default function RegistroPublicoScreen() {
             enabled={!loadingCatalogos && estados.length > 0}
           >
             {loadingCatalogos ? (
-              <Picker.Item label="Cargando estados..." value="" />
+              <Picker.Item label="CARGANDO ESTADOS..." value="" />
             ) : null}
             {!loadingCatalogos && estados.length === 0 ? (
-              <Picker.Item label="Sin opciones disponibles" value="" />
+              <Picker.Item label="SIN OPCIONES DISPONIBLES" value="" />
             ) : null}
             {estados.map((estado) => (
               <Picker.Item
                 key={estado.id_estado}
-                label={estado.estado}
+                label={pickerDisplay(estado.estado)}
                 value={String(estado.id_estado)}
               />
             ))}
           </Picker>
         </View>
+        </View>
 
+        <View>
         <RequiredLabel>Municipio</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
@@ -524,49 +495,59 @@ export default function RegistroPublicoScreen() {
             enabled={!loadingMunicipios && municipios.length > 0}
           >
             {loadingMunicipios ? (
-              <Picker.Item label="Cargando municipios..." value="" />
+              <Picker.Item label="CARGANDO MUNICIPIOS..." value="" />
             ) : null}
             {!loadingMunicipios && municipios.length === 0 ? (
-              <Picker.Item label="Sin opciones disponibles" value="" />
+              <Picker.Item label="SIN OPCIONES DISPONIBLES" value="" />
             ) : null}
             {municipios.map((municipio) => (
               <Picker.Item
                 key={`${form.id_estado}-${municipio.num_municipio}`}
-                label={municipio.municipio}
+                label={pickerDisplay(municipio.municipio)}
                 value={String(municipio.num_municipio)}
               />
             ))}
           </Picker>
         </View>
+        </View>
 
+        <View>
         <RequiredLabel>Colonia</RequiredLabel>
         <TextInput
           style={authStyles.input}
           value={form.colonia}
           onChangeText={(v) => updateField("colonia", v)}
         />
+        </View>
 
+        <View>
         <RequiredLabel>Calle</RequiredLabel>
         <TextInput
           style={authStyles.input}
           value={form.calle}
           onChangeText={(v) => updateField("calle", v)}
         />
+        </View>
 
-        <Text style={authStyles.label}>Número interior</Text>
+        <View>
+        <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>Número interior</Text>
         <TextInput
           style={authStyles.input}
           value={form.numero_int}
           onChangeText={(v) => updateField("numero_int", v)}
         />
+        </View>
 
-        <Text style={authStyles.label}>Número exterior</Text>
+        <View>
+        <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>Número exterior</Text>
         <TextInput
           style={authStyles.input}
           value={form.numero_ext}
           onChangeText={(v) => updateField("numero_ext", v)}
         />
+        </View>
 
+        <View>
         <RequiredLabel>Código postal</RequiredLabel>
         <TextInput
           style={authStyles.input}
@@ -575,21 +556,27 @@ export default function RegistroPublicoScreen() {
           maxLength={5}
           onChangeText={(v) => updateField("codigo_postal", v)}
         />
+        </View>
 
-        <Text style={authStyles.label}>Razón social</Text>
+        <View>
+        <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>Razón social</Text>
         <TextInput
           style={authStyles.input}
           value={form.razon_social}
           onChangeText={(v) => updateField("razon_social", v)}
         />
+        </View>
 
-        <Text style={authStyles.label}>RFC</Text>
+        <View>
+        <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>RFC</Text>
         <TextInput
           style={authStyles.input}
           value={form.rfc}
           onChangeText={(v) => updateField("rfc", v)}
         />
+        </View>
 
+        <View>
         <RequiredLabel>Género</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
@@ -598,46 +585,23 @@ export default function RegistroPublicoScreen() {
             enabled={!loadingCatalogos && generos.length > 0}
           >
             {loadingCatalogos ? (
-              <Picker.Item label="Cargando géneros..." value="" />
+              <Picker.Item label="CARGANDO GÉNEROS..." value="" />
             ) : null}
             {!loadingCatalogos && generos.length === 0 ? (
-              <Picker.Item label="Sin opciones disponibles" value="" />
+              <Picker.Item label="SIN OPCIONES DISPONIBLES" value="" />
             ) : null}
             {generos.map((genero) => (
               <Picker.Item
                 key={genero.id_genero}
-                label={genero.genero}
+                label={pickerDisplay(genero.genero)}
                 value={String(genero.id_genero)}
               />
             ))}
           </Picker>
         </View>
-
-        <RequiredLabel>Estatus de usuario</RequiredLabel>
-        <View style={authStyles.input}>
-          <Picker
-            selectedValue={form.id_estatus_usuario}
-            onValueChange={(value) =>
-              updateField("id_estatus_usuario", String(value))
-            }
-            enabled={!loadingCatalogos && estatusUsuarios.length > 0}
-          >
-            {loadingCatalogos ? (
-              <Picker.Item label="Cargando estatus..." value="" />
-            ) : null}
-            {!loadingCatalogos && estatusUsuarios.length === 0 ? (
-              <Picker.Item label="Sin opciones disponibles" value="" />
-            ) : null}
-            {estatusUsuarios.map((estatus) => (
-              <Picker.Item
-                key={estatus.id_estatususuario}
-                label={estatus.estatus_usuario}
-                value={String(estatus.id_estatususuario)}
-              />
-            ))}
-          </Picker>
         </View>
 
+        <View>
         <RequiredLabel>Estatus marital</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
@@ -648,21 +612,23 @@ export default function RegistroPublicoScreen() {
             enabled={!loadingCatalogos && estatusMaritales.length > 0}
           >
             {loadingCatalogos ? (
-              <Picker.Item label="Cargando estatus marital..." value="" />
+              <Picker.Item label="CARGANDO ESTATUS MARITAL..." value="" />
             ) : null}
             {!loadingCatalogos && estatusMaritales.length === 0 ? (
-              <Picker.Item label="Sin opciones disponibles" value="" />
+              <Picker.Item label="SIN OPCIONES DISPONIBLES" value="" />
             ) : null}
             {estatusMaritales.map((estatus) => (
               <Picker.Item
                 key={estatus.id_estatusmarital}
-                label={estatus.estatus_marital}
+                label={pickerDisplay(estatus.estatus_marital)}
                 value={String(estatus.id_estatusmarital)}
               />
             ))}
           </Picker>
         </View>
+        </View>
 
+        <View>
         <RequiredLabel>Categoría de vivienda</RequiredLabel>
         <View style={authStyles.input}>
           <Picker
@@ -673,19 +639,20 @@ export default function RegistroPublicoScreen() {
             enabled={!loadingCatalogos && categoriasVivienda.length > 0}
           >
             {loadingCatalogos ? (
-              <Picker.Item label="Cargando categorías..." value="" />
+              <Picker.Item label="CARGANDO CATEGORÍAS..." value="" />
             ) : null}
             {!loadingCatalogos && categoriasVivienda.length === 0 ? (
-              <Picker.Item label="Sin opciones disponibles" value="" />
+              <Picker.Item label="SIN OPCIONES DISPONIBLES" value="" />
             ) : null}
             {categoriasVivienda.map((categoria) => (
               <Picker.Item
                 key={categoria.id_categoriavivienda}
-                label={categoria.categoria_vivienda}
+                label={pickerDisplay(categoria.categoria_vivienda)}
                 value={String(categoria.id_categoriavivienda)}
               />
             ))}
           </Picker>
+        </View>
         </View>
 
         {error ? (
@@ -706,10 +673,11 @@ export default function RegistroPublicoScreen() {
           disabled={loading}
         />
 
-        <View style={authStyles.linksRowCentered}>
+        <View style={authStyles.authFormLinks}>
           <Link href="/" style={[authStyles.linkText, authStyles.textCenter]}>
             Volver al login
           </Link>
+        </View>
         </View>
       </Card>
     </ScrollView>

@@ -38,54 +38,60 @@ export default function RecuperarCodigoScreen() {
 
   return (
     <ScrollView style={authStyles.screen} contentContainerStyle={authStyles.content}>
-      <Card style={authStyles.cardNarrow}>
-        <Text style={[authStyles.title, authStyles.textCenter]}>Recuperar Código</Text>
-        <Text style={[authStyles.subtitle, authStyles.textCenter]}>
-          Captura tu número celular y correo para recibir un nuevo código por email.
-        </Text>
+      <Card style={[authStyles.cardNarrow, authStyles.authFormCard]}>
+        <View style={authStyles.authFormStack}>
+          <View style={authStyles.authFormHeader}>
+            <Text style={[authStyles.title, authStyles.textCenter]}>Recuperar Código</Text>
+            <Text style={[authStyles.subtitle, authStyles.textCenter]}>
+              Captura tu número celular y correo para recibir un nuevo código por email.
+            </Text>
+          </View>
 
-        <View>
-          <Text style={authStyles.label}>Número celular personal</Text>
-          <TextInput
-            style={authStyles.input}
-            value={telefonoPersonal}
-            onChangeText={(v) => setTelefonoPersonal(v.replace(/\D/g, "").slice(0, 10))}
-            keyboardType="numeric"
-            maxLength={10}
-            placeholder="10 dígitos"
+          <View>
+            <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>
+              Número celular personal
+            </Text>
+            <TextInput
+              style={authStyles.input}
+              value={telefonoPersonal}
+              onChangeText={(v) => setTelefonoPersonal(v.replace(/\D/g, "").slice(0, 10))}
+              keyboardType="numeric"
+              maxLength={10}
+              placeholder="10 dígitos"
+            />
+          </View>
+
+          <View>
+            <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>Correo electrónico</Text>
+            <TextInput
+              style={authStyles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholder="correo@ejemplo.com"
+            />
+          </View>
+
+          {error ? (
+            <Text style={[authStyles.message, authStyles.messageError]}>{error}</Text>
+          ) : null}
+          {message ? (
+            <Text style={[authStyles.message, authStyles.messageSuccess]}>{message}</Text>
+          ) : null}
+
+          <Button
+            variant="secondary"
+            label={loading ? "Enviando..." : "Enviar nuevo código"}
+            onPress={onSubmit}
+            disabled={loading}
           />
-        </View>
 
-        <View>
-          <Text style={authStyles.label}>Correo electrónico</Text>
-          <TextInput
-            style={authStyles.input}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholder="correo@ejemplo.com"
-          />
-        </View>
-
-        {error ? (
-          <Text style={[authStyles.message, authStyles.messageError]}>{error}</Text>
-        ) : null}
-        {message ? (
-          <Text style={[authStyles.message, authStyles.messageSuccess]}>{message}</Text>
-        ) : null}
-
-        <Button
-          variant="secondary"
-          label={loading ? "Enviando..." : "Enviar nuevo código"}
-          onPress={onSubmit}
-          disabled={loading}
-        />
-
-        <View style={authStyles.linksRowCentered}>
-          <Link href="/" style={[authStyles.linkText, authStyles.textCenter]}>
-            Volver al login
-          </Link>
+          <View style={authStyles.authFormLinks}>
+            <Link href="/" style={[authStyles.linkText, authStyles.textCenter]}>
+              Volver al login
+            </Link>
+          </View>
         </View>
       </Card>
     </ScrollView>

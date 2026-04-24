@@ -55,57 +55,63 @@ export default function Index() {
 
   return (
     <ScrollView style={authStyles.screen} contentContainerStyle={authStyles.content}>
-      <Card style={authStyles.cardNarrow}>
-        <Text style={[authStyles.title, authStyles.textCenter]}>Acceso al Sistema</Text>
-        <Text style={[authStyles.subtitle, authStyles.textCenter]}>
-          Ingrese su número celular y su código personal.
-        </Text>
+      <Card style={[authStyles.cardNarrow, authStyles.authFormCard]}>
+        <View style={authStyles.authFormStack}>
+          <View style={authStyles.authFormHeader}>
+            <Text style={[authStyles.title, authStyles.textCenter]}>Acceso al Sistema</Text>
+            <Text style={[authStyles.subtitle, authStyles.textCenter]}>
+              Ingrese su número celular y su código personal.
+            </Text>
+          </View>
 
-        <View>
-          <Text style={authStyles.label}>Número celular personal</Text>
-          <TextInput
-            style={authStyles.input}
-            value={telefonoPersonal}
-            onChangeText={onChangeTelefono}
-            keyboardType="numeric"
-            maxLength={10}
-            placeholder="10 dígitos"
-            accessibilityLabel="Número celular personal"
+          <View>
+            <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>
+              Número celular personal
+            </Text>
+            <TextInput
+              style={authStyles.input}
+              value={telefonoPersonal}
+              onChangeText={onChangeTelefono}
+              keyboardType="numeric"
+              maxLength={10}
+              placeholder="10 dígitos"
+              accessibilityLabel="Número celular personal"
+            />
+          </View>
+
+          <View>
+            <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>Código de acceso</Text>
+            <TextInput
+              style={authStyles.input}
+              value={codigo}
+              onChangeText={onChangeCodigo}
+              keyboardType="numeric"
+              secureTextEntry
+              maxLength={6}
+              placeholder="6 dígitos"
+              accessibilityLabel="Código de acceso"
+            />
+          </View>
+
+          {error ? (
+            <Text style={[authStyles.message, authStyles.messageError]}>{error}</Text>
+          ) : null}
+
+          <Button
+            variant="secondary"
+            label={loading ? "Accediendo..." : "Acceder al sistema"}
+            onPress={onSubmit}
+            disabled={loading}
           />
-        </View>
 
-        <View>
-          <Text style={authStyles.label}>Código de acceso</Text>
-          <TextInput
-            style={authStyles.input}
-            value={codigo}
-            onChangeText={onChangeCodigo}
-            keyboardType="numeric"
-            secureTextEntry
-            maxLength={6}
-            placeholder="6 dígitos"
-            accessibilityLabel="Código de acceso"
-          />
-        </View>
-
-        {error ? (
-          <Text style={[authStyles.message, authStyles.messageError]}>{error}</Text>
-        ) : null}
-
-        <Button
-          variant="secondary"
-          label={loading ? "Accediendo..." : "Acceder al sistema"}
-          onPress={onSubmit}
-          disabled={loading}
-        />
-
-        <View style={[authStyles.linksRow, authStyles.linksRowCentered]}>
-          <Link href="/recuperar-codigo" style={[authStyles.linkText, authStyles.textCenter]}>
-            Recuperar código de acceso
-          </Link>
-          <Link href="/registro-publico" style={[authStyles.linkText, authStyles.textCenter]}>
-            Registro público al sistema
-          </Link>
+          <View style={authStyles.authFormLinks}>
+            <Link href="/recuperar-codigo" style={[authStyles.linkText, authStyles.textCenter]}>
+              Recuperar código de acceso
+            </Link>
+            <Link href="/registro-publico" style={[authStyles.linkText, authStyles.textCenter]}>
+              Registro público al sistema
+            </Link>
+          </View>
         </View>
       </Card>
     </ScrollView>
