@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "expo-router";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ScrollView, Text, TextInput, View } from "react-native";
+import { Button, Card } from "../assets/components/ui";
 import { authStyles } from "../src/styles/auth-styles";
 import { recuperarCodigo } from "../src/services/auth-api";
 
@@ -37,7 +38,7 @@ export default function RecuperarCodigoScreen() {
 
   return (
     <ScrollView style={authStyles.screen} contentContainerStyle={authStyles.content}>
-      <View style={[authStyles.card, authStyles.cardNarrow]}>
+      <Card style={authStyles.cardNarrow}>
         <Text style={[authStyles.title, authStyles.textCenter]}>Recuperar Código</Text>
         <Text style={[authStyles.subtitle, authStyles.textCenter]}>
           Captura tu número celular y correo para recibir un nuevo código por email.
@@ -74,22 +75,19 @@ export default function RecuperarCodigoScreen() {
           <Text style={[authStyles.message, authStyles.messageSuccess]}>{message}</Text>
         ) : null}
 
-        <Pressable
-          style={[authStyles.button, authStyles.buttonSecondary]}
+        <Button
+          variant="secondary"
+          label={loading ? "Enviando..." : "Enviar nuevo código"}
           onPress={onSubmit}
           disabled={loading}
-        >
-          <Text style={authStyles.buttonText}>
-            {loading ? "Enviando..." : "Enviar nuevo código"}
-          </Text>
-        </Pressable>
+        />
 
         <View style={authStyles.linksRowCentered}>
           <Link href="/" style={[authStyles.linkText, authStyles.textCenter]}>
             Volver al login
           </Link>
         </View>
-      </View>
+      </Card>
     </ScrollView>
   );
 }

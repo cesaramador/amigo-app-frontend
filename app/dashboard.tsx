@@ -1,6 +1,9 @@
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
+import { Button, Card, ModuleCard } from "../assets/components/ui";
+import { dashboardTheme } from "../assets/styles/theme";
+import { dashboardModules } from "../assets/data/dashboard-modules";
 import { authStyles } from "../src/styles/auth-styles";
 import { abandonarSesion, leerSesionActiva, limpiarSesionActiva } from "../src/services/auth-api";
 
@@ -44,6 +47,13 @@ export default function DashboardScreen() {
     router.replace("/");
   };
 
+  const accentStyleByModule = {
+    green: dashboardTheme.moduleAccentGreen,
+    yellow: dashboardTheme.moduleAccentYellow,
+    blue: dashboardTheme.moduleAccentBlue,
+    lavender: dashboardTheme.moduleAccentLavender,
+  } as const;
+
   return (
     <ScrollView
       style={authStyles.screen}
@@ -52,18 +62,30 @@ export default function DashboardScreen() {
       <View style={authStyles.topBar}>
         <Text style={authStyles.topBarText}>{saludoUsuario}</Text>
       </View>
-      <View style={authStyles.card}>
+      <Card>
         <Text style={authStyles.title}>Bienvenido al Dashboard</Text>
-        <Text style={authStyles.subtitle}>
-          Inicio de sesión correcto. Esta es una vista temporal de bienvenida.
-        </Text>
+        <Text style={dashboardTheme.sectionSubtitle}>Inicio de sesión correcto.</Text>
+
+        <Text style={dashboardTheme.sectionTitle}>Secciones del sistema</Text>
+        <View style={dashboardTheme.modulesGrid}>
+          {dashboardModules.map((moduleItem) => (
+            <ModuleCard
+              key={moduleItem.key}
+              title={moduleItem.title}
+              description={moduleItem.description}
+              variantStyle={accentStyleByModule[moduleItem.accent]}
+            />
+          ))}
+        </View>
+
         {error ? <Text style={[authStyles.message, authStyles.messageError]}>{error}</Text> : null}
-        <Pressable onPress={onCerrarSesion} disabled={loading}>
-          <Text style={authStyles.linkText}>
-            {loading ? "Cerrando sesión..." : "Cerrar sesión y volver al login"}
-          </Text>
-        </Pressable>
-      </View>
+        <Button
+          label={loading ? "Cerrando sesión..." : "Cerrar sesión y volver al login"}
+          variant="warning"
+          onPress={onCerrarSesion}
+          disabled={loading}
+        />
+      </Card>
     </ScrollView>
   );
 }

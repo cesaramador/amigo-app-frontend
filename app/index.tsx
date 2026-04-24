@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
-  Pressable,
   ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { Link, router } from "expo-router";
+import { Button, Card } from "../assets/components/ui";
 import { authStyles } from "../src/styles/auth-styles";
 import { guardarSesionActiva, iniciarSesion } from "../src/services/auth-api";
 
@@ -55,7 +55,7 @@ export default function Index() {
 
   return (
     <ScrollView style={authStyles.screen} contentContainerStyle={authStyles.content}>
-      <View style={[authStyles.card, authStyles.cardNarrow]}>
+      <Card style={authStyles.cardNarrow}>
         <Text style={[authStyles.title, authStyles.textCenter]}>Acceso al Sistema</Text>
         <Text style={[authStyles.subtitle, authStyles.textCenter]}>
           Ingrese su número celular y su código personal.
@@ -92,15 +92,12 @@ export default function Index() {
           <Text style={[authStyles.message, authStyles.messageError]}>{error}</Text>
         ) : null}
 
-        <Pressable
-          style={[authStyles.button, authStyles.buttonSecondary]}
+        <Button
+          variant="secondary"
+          label={loading ? "Accediendo..." : "Acceder al sistema"}
           onPress={onSubmit}
           disabled={loading}
-        >
-          <Text style={authStyles.buttonText}>
-            {loading ? "Accediendo..." : "Acceder al sistema"}
-          </Text>
-        </Pressable>
+        />
 
         <View style={[authStyles.linksRow, authStyles.linksRowCentered]}>
           <Link href="/recuperar-codigo" style={[authStyles.linkText, authStyles.textCenter]}>
@@ -110,7 +107,7 @@ export default function Index() {
             Registro público al sistema
           </Link>
         </View>
-      </View>
+      </Card>
     </ScrollView>
   );
 }

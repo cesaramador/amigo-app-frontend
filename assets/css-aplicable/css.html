@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UI Accesible - Adultos Mayores</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Tipografía recomendada -->
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --azul-confianza: #2D6CB0;
+      --verde-calma: #6BAA7B;
+      --amarillo-suave: #F2C86D;
+      --lavanda-suave: #A999D6;
+      --gris-claro: #F2F4F7;
+      --azul-oscuro: #2B2F3A;
+      --blanco: #FFFFFF;
+      --sombra: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Atkinson Hyperlegible', sans-serif;
+      background-color: var(--gris-claro);
+      color: var(--azul-oscuro);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    header {
+      background-color: var(--azul-confianza);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--sombra);
+    }
+
+    .card h3 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      font-size: 18px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      text-decoration: none;
+      text-align: center;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background-color: var(--azul-confianza);
+      color: white;
+    }
+
+    .btn-secondary {
+      background-color: var(--verde-calma);
+      color: white;
+    }
+
+    .btn-warning {
+      background-color: var(--amarillo-suave);
+      color: var(--azul-oscuro);
+    }
+
+    .footer {
+      margin-top: 30px;
+      padding: 20px;
+      text-align: center;
+      font-size: 16px;
+      color: #555;
+    }
+
+    /* Accesibilidad extra */
+    .btn:focus, .card:focus {
+      outline: 3px solid var(--lavanda-suave);
+    }
+
+  </style>
+</head>
+
+<body>
+
+<header>
+  Bienestar Contigo
+</header>
+
+<div class="container">
+
+  <h2>Hola, María 👋</h2>
+  <p>Hoy es un buen día para cuidar de tu salud.</p>
+
+  <div class="grid">
+
+    <div class="card">
+      <h3>💊 Salud</h3>
+      <p>Consulta tus medicamentos y citas médicas.</p>
+      <a href="#" class="btn btn-secondary">Ver más</a>
+    </div>
+
+    <div class="card">
+      <h3>📅 Recordatorios</h3>
+      <p>No olvides tus actividades importantes.</p>
+      <a href="#" class="btn btn-warning">Ver recordatorios</a>
+    </div>
+
+    <div class="card">
+      <h3>👨‍👩‍👧 Contactos</h3>
+      <p>Comunícate fácilmente con tu familia.</p>
+      <a href="#" class="btn btn-primary">Llamar</a>
+    </div>
+
+    <div class="card">
+      <h3>☀️ Clima</h3>
+      <p>24°C - Soleado</p>
+      <a href="#" class="btn btn-secondary">Ver detalles</a>
+    </div>
+
+  </div>
+
+  <h2 style="margin-top:30px;">Acciones rápidas</h2>
+
+  <div class="grid">
+    <button class="btn btn-primary">Agendar cita</button>
+    <button class="btn btn-secondary">Ver medicamentos</button>
+    <button class="btn btn-warning">Pedir ayuda</button>
+  </div>
+
+</div>
+
+<div class="footer">
+  Diseño accesible para adultos mayores ✔
+</div>
+
+</body>
+</html>

@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { Button, Card } from "../assets/components/ui";
 import {
   obtenerCategoriasViviendasPublicas,
   obtenerEstadosPublicos,
@@ -348,7 +349,7 @@ export default function RegistroPublicoScreen() {
       style={authStyles.screen}
       contentContainerStyle={authStyles.content}
     >
-      <View style={[authStyles.card, authStyles.cardWide]}>
+      <Card style={authStyles.cardWide}>
         <Text style={[authStyles.title, authStyles.textCenter]}>Registro Público</Text>
         <Text style={[authStyles.subtitle, authStyles.textCenter]}>
           Complete sus datos para crear su cuenta y recibir el código por email.
@@ -698,22 +699,19 @@ export default function RegistroPublicoScreen() {
           </Text>
         ) : null}
 
-        <Pressable
-          style={[authStyles.button, authStyles.buttonSecondary]}
+        <Button
+          variant="secondary"
+          label={loading ? "Registrando..." : "Completar registro público"}
           onPress={onSubmit}
           disabled={loading}
-        >
-          <Text style={authStyles.buttonText}>
-            {loading ? "Registrando..." : "Completar registro público"}
-          </Text>
-        </Pressable>
+        />
 
         <View style={authStyles.linksRowCentered}>
           <Link href="/" style={[authStyles.linkText, authStyles.textCenter]}>
             Volver al login
           </Link>
         </View>
-      </View>
+      </Card>
     </ScrollView>
   );
 }

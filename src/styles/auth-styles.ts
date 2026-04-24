@@ -1,25 +1,23 @@
 import { StyleSheet } from "react-native";
+import { palette, uiTokens } from "../../assets/styles/tokens";
 
 export const colors = {
-  // Paleta recomendada
-  blueTrust: "#2D6CB0",
-  greenCalm: "#6BAA7B",
-  yellowSoft: "#F2C86D",
-  lavenderSoft: "#A999D6",
-  lightGray: "#F2F4F7",
-  darkBlue: "#2B2F3A",
-
-  // Tokens de UI
-  background: "#F2F4F7",
-  surface: "#FFFFFF",
-  primary: "#2D6CB0",
-  secondary: "#A999D6",
-  accent: "#F2C86D",
-  text: "#2B2F3A",
-  muted: "#5E6676",
-  border: "#D9DEE7",
-  success: "#6BAA7B",
-  error: "#C4554D",
+  blueTrust: palette.azulConfianza,
+  greenCalm: palette.verdeCalma,
+  yellowSoft: palette.amarilloSuave,
+  lavenderSoft: palette.lavandaSuave,
+  lightGray: palette.grisClaro,
+  darkBlue: palette.azulOscuro,
+  background: uiTokens.color.background,
+  surface: uiTokens.color.surface,
+  primary: uiTokens.color.primary,
+  secondary: uiTokens.color.secondary,
+  accent: uiTokens.color.warning,
+  text: uiTokens.color.text,
+  muted: uiTokens.color.muted,
+  border: uiTokens.color.border,
+  success: uiTokens.color.secondary,
+  error: uiTokens.color.error,
 };
 
 export const authStyles = StyleSheet.create({
@@ -48,11 +46,12 @@ export const authStyles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 14,
+    borderRadius: uiTokens.radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 18,
+    padding: uiTokens.spacing.lg,
     gap: 12,
+    ...uiTokens.shadow.card,
   },
   cardNarrow: {
     width: "100%",
@@ -65,7 +64,7 @@ export const authStyles = StyleSheet.create({
     alignSelf: "center",
   },
   title: {
-    fontSize: 28,
+    fontSize: uiTokens.typography.titleSize,
     fontWeight: "700",
     color: colors.primary,
   },
@@ -73,9 +72,9 @@ export const authStyles = StyleSheet.create({
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: uiTokens.typography.subtitleSize,
     color: colors.darkBlue,
-    lineHeight: 26,
+    lineHeight: uiTokens.typography.bodyLineHeight,
   },
   label: {
     fontSize: 17,
@@ -90,11 +89,12 @@ export const authStyles = StyleSheet.create({
     backgroundColor: colors.lightGray,
     borderWidth: 2,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: uiTokens.radius.sm,
     paddingVertical: 14,
     paddingHorizontal: 12,
-    fontSize: 18,
+    fontSize: uiTokens.typography.bodySize,
     color: colors.text,
+    minHeight: uiTokens.size.minTouchTarget,
   },
   multilineInput: {
     minHeight: 98,
@@ -102,18 +102,18 @@ export const authStyles = StyleSheet.create({
   },
   button: {
     backgroundColor: colors.primary,
-    borderRadius: 10,
-    minHeight: 52,
+    borderRadius: uiTokens.radius.sm,
+    minHeight: uiTokens.size.buttonHeight,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 16,
   },
   buttonSecondary: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.secondary,
   },
   buttonText: {
-    color: colors.darkBlue,
-    fontSize: 18,
+    color: colors.surface,
+    fontSize: uiTokens.typography.buttonSize,
     fontWeight: "700",
   },
   linksRow: {
