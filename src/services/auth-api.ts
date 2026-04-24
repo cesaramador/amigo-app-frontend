@@ -57,8 +57,8 @@ export type EstadoOption = {
 };
 
 export type MunicipioOption = {
-  id_municipio: number;
-  id_estado: number;
+  id_municipio?: number;
+  id_estado?: number;
   num_municipio: number;
   municipio: string;
 };
@@ -82,6 +82,40 @@ export type CategoriaViviendaOption = {
   id_categoriavivienda: number;
   categoria_vivienda: string;
 };
+
+/**
+ * GET sin cookies ni Authorization: catálogos públicos y registro desde cualquier red / WebView.
+ */
+async function getJsonPublic<T>(path: string): Promise<ApiResult<T>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: { Accept: "application/json" },
+      credentials: "omit",
+    });
+    const rawBody = await response.text();
+    const json = rawBody ? (JSON.parse(rawBody) as ApiResult<T>) : null;
+    if (!response.ok) {
+      return {
+        success: false,
+        message:
+          json?.message ||
+          `Error ${response.status} al consultar catálogo (${path}).`,
+      };
+    }
+    return (
+      json ?? {
+        success: false,
+        message: "Respuesta vacía del servidor.",
+      }
+    );
+  } catch {
+    return {
+      success: false,
+      message:
+        "No fue posible conectar con el servidor. Verifique su red o URL del API.",
+    };
+  }
+}
 
 async function getJson<T>(path: string): Promise<ApiResult<T>> {
   try {
@@ -224,38 +258,34 @@ export function registrarPublico(payload: RegistroPublicoPayload) {
 }
 
 export function obtenerTiposUsuariosPublicos() {
-  return getJson<TipoUsuarioOption[]>("/tiposusuarios?limit=50&sort=id_tipousuario:asc");
+  return getJsonPublic<TipoUsuarioOption[]>("/auth/tipos-usuarios");
 }
 
 export function obtenerEstadosPublicos() {
-  return getJson<EstadoOption[]>("/estados?limit=100&sort=id_estado:asc");
+  return getJsonPublic<EstadoOption[]>("/auth/estados");
 }
 
 export function obtenerMunicipiosPorEstado(idEstado: string) {
-  return getJson<MunicipioOption[]>(`/municipios?limit=3000&sort=id_municipio:asc`).then(
-    (result) => {
-      if (!result.success || !result.data) return result;
-      const filtered = result.data.filter(
-        (municipio) => String(municipio.id_estado) === String(idEstado)
-      );
-      return {
-        ...result,
-        data: filtered,
-      };
-    }
-  );
+  const id = encodeURIComponent(String(idEstado).trim());
+  return getJsonPublic<MunicipioOption[]>(`/auth/municipios/${id}`);
 }
 
 export function obtenerGenerosPublicos() {
-  return getJson<GeneroOption[]>("/generos?limit=50&sort=id_genero:asc");
+  return getJsonPublic<GeneroOption[]>("/auth/generos");
 }
 
 export function obtenerEstatusMaritalesPublicos() {
-  return getJson<EstatusMaritalOption[]>("/estatusmaritales?limit=50&sort=id_estatusmarital:asc");
+  return getJsonPublic<EstatusMaritalOption[]>(
+    "/auth/estatus-maritales",
+  );
+}
+
+export function obtenerEstatusUsuariosPublicos() {
+  return getJsonPublic<EstatusUsuarioOption[]>("/auth/estatus-usuarios");
 }
 
 export function obtenerCategoriasViviendasPublicas() {
-  return getJson<CategoriaViviendaOption[]>(
-    "/categoriasviviendas?limit=50&sort=id_categoriavivienda:asc"
+  return getJsonPublic<CategoriaViviendaOption[]>(
+    "/auth/categorias-viviendas",
   );
 }

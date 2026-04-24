@@ -16,6 +16,7 @@ import {
   obtenerCategoriasViviendasPublicas,
   obtenerEstadosPublicos,
   obtenerEstatusMaritalesPublicos,
+  obtenerEstatusUsuariosPublicos,
   obtenerGenerosPublicos,
   obtenerMunicipiosPorEstado,
   obtenerTiposUsuariosPublicos,
@@ -216,12 +217,14 @@ export default function RegistroPublicoScreen() {
         tiposUsuariosResult,
         estadosResult,
         generosResult,
+        estatusUsuariosResult,
         estatusMaritalesResult,
         categoriasViviendaResult,
       ] = await Promise.all([
         obtenerTiposUsuariosPublicos(),
         obtenerEstadosPublicos(),
         obtenerGenerosPublicos(),
+        obtenerEstatusUsuariosPublicos(),
         obtenerEstatusMaritalesPublicos(),
         obtenerCategoriasViviendasPublicas(),
       ]);
@@ -245,6 +248,10 @@ export default function RegistroPublicoScreen() {
         categoriasViviendaResult.success && categoriasViviendaResult.data
           ? categoriasViviendaResult.data
           : [];
+      const estatusUsuariosDisponibles =
+        estatusUsuariosResult.success && estatusUsuariosResult.data?.length
+          ? estatusUsuariosResult.data
+          : fallbackEstatusUsuarios;
 
       if (tipos.length === 0) errores.push("tipos de usuario");
       if (estadosDisponibles.length === 0) errores.push("estados");
@@ -257,8 +264,7 @@ export default function RegistroPublicoScreen() {
       setTiposUsuarios(tipos);
       setEstados(estadosDisponibles);
       setGeneros(generosDisponibles);
-      // Este catálogo en nube responde 401; se usa fallback para no bloquear registro.
-      setEstatusUsuarios(fallbackEstatusUsuarios);
+      setEstatusUsuarios(estatusUsuariosDisponibles);
       setEstatusMaritales(estatusMaritalesDisponibles);
       setCategoriasVivienda(categoriasDisponibles);
 
@@ -274,7 +280,8 @@ export default function RegistroPublicoScreen() {
             ? String(generosDisponibles[0].id_genero)
             : "",
         id_estatus_usuario: String(
-          fallbackEstatusUsuarios[0].id_estatususuario,
+          estatusUsuariosDisponibles[0]?.id_estatususuario ??
+            fallbackEstatusUsuarios[0].id_estatususuario,
         ),
         id_estatus_marital:
           estatusMaritalesDisponibles.length > 0
