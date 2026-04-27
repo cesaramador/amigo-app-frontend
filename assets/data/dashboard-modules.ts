@@ -5,6 +5,7 @@ export type DashboardModule = {
   title: string;
   description: string;
   accent: DashboardModuleAccent;
+  route?: string;
 };
 
 export const dashboardModules: DashboardModule[] = [
@@ -43,6 +44,7 @@ export const dashboardModules: DashboardModule[] = [
     title: "Usuarios",
     description: "Alta, consulta y administracion de cuentas y perfiles.",
     accent: "blue",
+    route: "/Usuarios",
   },
   {
     key: "proximos-procesos",

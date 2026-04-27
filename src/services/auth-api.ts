@@ -165,6 +165,27 @@ export type CategoriaViviendaOption = {
   categoria_vivienda: string;
 };
 
+export type EstadoAdminOption = {
+  id_estado: number;
+  estado: string;
+};
+
+export type MunicipioAdminOption = {
+  id_municipio: number;
+  id_estado: number;
+  municipio: string;
+};
+
+export type EstatusMaritalAdminOption = {
+  id_estatusmarital: number;
+  estatus_marital: string;
+};
+
+export type CategoriaViviendaAdminOption = {
+  id_categoriavivienda: number;
+  categoria_vivienda: string;
+};
+
 /**
  * GET sin cookies ni Authorization: catálogos públicos y registro desde cualquier red / WebView.
  */
@@ -259,6 +280,111 @@ async function postJson<T>(path: string, payload?: unknown): Promise<ApiResult<T
         message:
           json?.message ||
           `Error ${response.status} al procesar la solicitud (${path}).`,
+      };
+    }
+
+    return (
+      json ?? {
+        success: false,
+        message: "Respuesta vacía del servidor.",
+      }
+    );
+  } catch (err) {
+    const dev = __DEV__ && err instanceof Error ? ` Detalle: ${err.message}` : "";
+    return {
+      success: false,
+      message: `No fue posible conectar con el servidor (${base}).${hintFalloRed(base)}${dev}`,
+    };
+  }
+}
+
+async function patchJson<T>(path: string, payload?: unknown): Promise<ApiResult<T>> {
+  const base = getApiBaseUrl();
+  try {
+    const hasPayload = payload !== undefined;
+    const jsonHeaders = hasPayload ? { "Content-Type": "application/json" } : undefined;
+    const response = await fetch(`${base}${path}`, {
+      method: "PATCH",
+      headers: buildDefaultFetchHeaders({ ...(buildAuthHeaders(jsonHeaders) || {}) }),
+      body: hasPayload ? JSON.stringify(payload) : undefined,
+      credentials: "omit",
+    });
+
+    const rawBody = await response.text();
+    const json = safeParseApiResult<T>(rawBody);
+    if (!response.ok) {
+      return {
+        success: false,
+        message: json?.message || `Error ${response.status} al actualizar (${path}).`,
+      };
+    }
+
+    return (
+      json ?? {
+        success: false,
+        message: "Respuesta vacía del servidor.",
+      }
+    );
+  } catch (err) {
+    const dev = __DEV__ && err instanceof Error ? ` Detalle: ${err.message}` : "";
+    return {
+      success: false,
+      message: `No fue posible conectar con el servidor (${base}).${hintFalloRed(base)}${dev}`,
+    };
+  }
+}
+
+async function putJson<T>(path: string, payload?: unknown): Promise<ApiResult<T>> {
+  const base = getApiBaseUrl();
+  try {
+    const hasPayload = payload !== undefined;
+    const jsonHeaders = hasPayload ? { "Content-Type": "application/json" } : undefined;
+    const response = await fetch(`${base}${path}`, {
+      method: "PUT",
+      headers: buildDefaultFetchHeaders({ ...(buildAuthHeaders(jsonHeaders) || {}) }),
+      body: hasPayload ? JSON.stringify(payload) : undefined,
+      credentials: "omit",
+    });
+
+    const rawBody = await response.text();
+    const json = safeParseApiResult<T>(rawBody);
+    if (!response.ok) {
+      return {
+        success: false,
+        message: json?.message || `Error ${response.status} al actualizar (${path}).`,
+      };
+    }
+
+    return (
+      json ?? {
+        success: false,
+        message: "Respuesta vacía del servidor.",
+      }
+    );
+  } catch (err) {
+    const dev = __DEV__ && err instanceof Error ? ` Detalle: ${err.message}` : "";
+    return {
+      success: false,
+      message: `No fue posible conectar con el servidor (${base}).${hintFalloRed(base)}${dev}`,
+    };
+  }
+}
+
+async function deleteJson<T>(path: string): Promise<ApiResult<T>> {
+  const base = getApiBaseUrl();
+  try {
+    const response = await fetch(`${base}${path}`, {
+      method: "DELETE",
+      headers: buildDefaultFetchHeaders({ ...(buildAuthHeaders() || {}) }),
+      credentials: "omit",
+    });
+
+    const rawBody = await response.text();
+    const json = safeParseApiResult<T>(rawBody);
+    if (!response.ok) {
+      return {
+        success: false,
+        message: json?.message || `Error ${response.status} al eliminar (${path}).`,
       };
     }
 
@@ -408,4 +534,109 @@ export function obtenerCategoriasViviendasPublicas() {
   return getJsonPublic<CategoriaViviendaOption[]>(
     "/auth/categorias-viviendas",
   );
+}
+
+export type UsuarioCrud = {
+  id_usuario: number;
+  id_tipousuario: number;
+  nombre: string;
+  ap_paterno?: string | null;
+  ap_materno?: string | null;
+  fecha_nacimiento?: string | null;
+  telefono_personal: string;
+  telefono_contacto?: string | null;
+  email: string;
+  id_estado: number;
+  id_municipio: number;
+  colonia: string;
+  calle: string;
+  numero_int?: string | null;
+  numero_ext?: string | null;
+  codigo_postal: string;
+  razon_social?: string | null;
+  rfc?: string | null;
+  fecha_registro?: string;
+  id_genero: number;
+  id_estatus_usuario: number;
+  id_estatus_marital: number;
+  id_categoria_vivienda: number;
+};
+
+export type UsuarioCrudPayload = Omit<UsuarioCrud, "id_usuario" | "fecha_registro">;
+
+type PagedListResponse<T> = {
+  meta?: {
+    total?: number;
+    page?: number;
+    pages?: number;
+    limit?: number;
+    sort?: string;
+  };
+  data: T[];
+};
+
+export function obtenerUsuarios() {
+  return getJson<PagedListResponse<UsuarioCrud>>("/usuarios");
+}
+
+export function obtenerUsuarioById(idUsuario: number) {
+  return getJson<UsuarioCrud>(`/usuarios/${idUsuario}`);
+}
+
+export function crearUsuario(payload: UsuarioCrudPayload) {
+  return postJson<{ user: UsuarioCrud }>("/usuarios", payload);
+}
+
+export async function actualizarUsuario(
+  idUsuario: number,
+  payload: Partial<UsuarioCrudPayload>,
+): Promise<ApiResult<UsuarioCrud>> {
+  const patchResult = await patchJson<UsuarioCrud>(`/usuarios/${idUsuario}`, payload);
+  if (patchResult.success) return patchResult;
+
+  const msg = patchResult.message.toLowerCase();
+  if (
+    msg.includes("faltan campos obligatorios") ||
+    msg.includes("cuerpo completo") ||
+    msg.includes("reemplazar")
+  ) {
+    return putJson<UsuarioCrud>(`/usuarios/${idUsuario}`, payload);
+  }
+  return patchResult;
+}
+
+export function eliminarUsuario(idUsuario: number) {
+  return deleteJson<UsuarioCrud>(`/usuarios/${idUsuario}`);
+}
+
+export function obtenerTiposUsuarios() {
+  return getJson<PagedListResponse<TipoUsuarioOption>>("/tiposusuarios");
+}
+
+export function obtenerGeneros() {
+  return getJson<PagedListResponse<GeneroOption>>("/generos");
+}
+
+export function obtenerEstatusUsuarios() {
+  return getJson<PagedListResponse<EstatusUsuarioOption>>("/estatususuarios");
+}
+
+export function obtenerEstados() {
+  return getJson<PagedListResponse<EstadoAdminOption>>("/estados");
+}
+
+export function obtenerMunicipios(idEstado?: number) {
+  const query =
+    typeof idEstado === "number" && Number.isInteger(idEstado) && idEstado > 0
+      ? `?id_estado=${idEstado}`
+      : "";
+  return getJson<PagedListResponse<MunicipioAdminOption>>(`/municipios${query}`);
+}
+
+export function obtenerEstatusMaritales() {
+  return getJson<PagedListResponse<EstatusMaritalAdminOption>>("/estatusmaritales");
+}
+
+export function obtenerCategoriasViviendas() {
+  return getJson<PagedListResponse<CategoriaViviendaAdminOption>>("/categoriasviviendas");
 }

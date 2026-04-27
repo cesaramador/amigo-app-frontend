@@ -9,6 +9,7 @@ import { Link, router } from "expo-router";
 import { Button, Card } from "../assets/components/ui";
 import { authStyles } from "../src/styles/auth-styles";
 import { guardarSesionActiva, iniciarSesion } from "../src/services/auth-api";
+import { formatPhoneMask } from "../src/utils/format-phone-mask";
 
 export default function Index() {
   const [telefonoPersonal, setTelefonoPersonal] = useState("");
@@ -70,11 +71,11 @@ export default function Index() {
             </Text>
             <TextInput
               style={authStyles.input}
-              value={telefonoPersonal}
+              value={formatPhoneMask(telefonoPersonal)}
               onChangeText={onChangeTelefono}
               keyboardType="numeric"
-              maxLength={10}
-              placeholder="10 dígitos"
+              maxLength={14}
+              placeholder="(555) 123-4567"
               accessibilityLabel="Número celular personal"
             />
           </View>

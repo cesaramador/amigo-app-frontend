@@ -29,6 +29,7 @@ import {
   type RegistroPublicoPayload,
 } from "../src/services/auth-api";
 import { authStyles } from "../src/styles/auth-styles";
+import { formatPhoneMask } from "../src/utils/format-phone-mask";
 
 type FormState = Record<keyof RegistroPublicoPayload, string>;
 
@@ -430,9 +431,10 @@ export default function RegistroPublicoScreen() {
         <RequiredLabel>Número celular personal</RequiredLabel>
         <TextInput
           style={authStyles.input}
-          value={form.telefono_personal}
-          keyboardType="numeric"
-          maxLength={10}
+          value={formatPhoneMask(form.telefono_personal)}
+          keyboardType="phone-pad"
+          maxLength={14}
+          placeholder="(555) 123-4567"
           onChangeText={(v) => updateField("telefono_personal", v)}
         />
         </View>
@@ -441,9 +443,10 @@ export default function RegistroPublicoScreen() {
         <Text style={[authStyles.label, authStyles.authFormLabelExtra]}>Número de contacto</Text>
         <TextInput
           style={authStyles.input}
-          value={form.telefono_contacto}
-          keyboardType="numeric"
-          maxLength={10}
+          value={formatPhoneMask(form.telefono_contacto)}
+          keyboardType="phone-pad"
+          maxLength={14}
+          placeholder="(555) 123-4567"
           onChangeText={(v) => updateField("telefono_contacto", v)}
         />
         </View>

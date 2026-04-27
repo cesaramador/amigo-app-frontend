@@ -4,6 +4,7 @@ import { ScrollView, Text, TextInput, View } from "react-native";
 import { Button, Card } from "../assets/components/ui";
 import { authStyles } from "../src/styles/auth-styles";
 import { recuperarCodigo } from "../src/services/auth-api";
+import { formatPhoneMask } from "../src/utils/format-phone-mask";
 
 export default function RecuperarCodigoScreen() {
   const [telefonoPersonal, setTelefonoPersonal] = useState("");
@@ -53,11 +54,11 @@ export default function RecuperarCodigoScreen() {
             </Text>
             <TextInput
               style={authStyles.input}
-              value={telefonoPersonal}
+              value={formatPhoneMask(telefonoPersonal)}
               onChangeText={(v) => setTelefonoPersonal(v.replace(/\D/g, "").slice(0, 10))}
               keyboardType="numeric"
-              maxLength={10}
-              placeholder="10 dígitos"
+              maxLength={14}
+              placeholder="(555) 123-4567"
             />
           </View>
 
